@@ -19,10 +19,14 @@ app.get('/api/health', (req, res) => {
 const db = process.env.MONGO_URI || 'mongodb://localhost:27017/wanderlist';
 
 // Connect to Mongo
-mongoose
-    .connect(db)
-    .then(() => console.log('MongoDB Connected...'))
-    .catch(err => console.log(err));
+if (process.env.MONGO_URI) {
+    mongoose
+        .connect(process.env.MONGO_URI)
+        .then(() => console.log('MongoDB Connected...'))
+        .catch(err => console.log('MongoDB Connection Error:', err));
+} else {
+    console.warn('No MONGO_URI found. Database features will be disabled.');
+}
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to data file
-const dataPath = path.join(__dirname, '../data/countries.json');
+// Path to data file - adaptable for local and Vercel
+const dataPath = path.join(process.cwd(), 'server', 'data', 'countries.json');
 
 // Helper to get data
 const getCountriesData = () => {
@@ -23,15 +24,24 @@ const Review = require('../models/Review');
 router.get('/', async (req, res) => {
     try {
         const countriesData = getCountriesData();
-        const ratings = await Review.aggregate([
-            {
-                $group: {
-                    _id: '$countryName',
-                    averageRating: { $avg: '$rating' },
-                    reviewCount: { $sum: 1 }
-                }
+        let ratings = [];
+
+        // Only fetch ratings if DB is connected (simple check: if mongoose.connection.readyState === 1)
+        if (require('mongoose').connection.readyState === 1) {
+            try {
+                ratings = await Review.aggregate([
+                    {
+                        $group: {
+                            _id: '$countryName',
+                            averageRating: { $avg: '$rating' },
+                            reviewCount: { $sum: 1 }
+                        }
+                    }
+                ]);
+            } catch (dbErr) {
+                console.warn('Database aggregation failed, proceeding with empty ratings', dbErr);
             }
-        ]);
+        }
 
         const countriesWithRatings = countriesData.map(country => {
             const ratingData = ratings.find(r => r._id === country.name.common);
@@ -45,7 +55,12 @@ router.get('/', async (req, res) => {
         res.json(countriesWithRatings);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        // Fallback to basic data if everything fails
+        try {
+            res.json(getCountriesData());
+        } catch (e) {
+            res.status(500).send('Server Error');
+        }
     }
 });
 
