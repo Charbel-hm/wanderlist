@@ -115,7 +115,7 @@ const Profile = () => {
                         background: 'var(--bg-card)'
                     }}>
                         <img
-                            src={previewImage || (user.profilePicture ? `http://localhost:5000${user.profilePicture}` : `https://ui-avatars.com/api/?name=${user.username}&background=random`)}
+                            src={previewImage || (user.profilePicture ? user.profilePicture : `https://ui-avatars.com/api/?name=${user.username}&background=random`)}
                             alt="Profile"
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />

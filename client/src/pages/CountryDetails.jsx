@@ -265,9 +265,9 @@ const CountryDetails = () => {
                 formData.append('media', file);
             });
 
-            // Use simple axios for multipart/form-data to avoid header issues with helper
+            // Use simple axios for multipart/form-data with relative path
             const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/api/reviews', formData, {
+            const res = await axios.post(import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/reviews` : '/api/reviews', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'x-auth-token': token

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import CountryCard from './CountryCard';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,7 +11,7 @@ const FeaturedSection = () => {
     useEffect(() => {
         const fetchTopCountries = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/countries');
+                const res = await api.get('/countries');
                 // Sort by rating (desc) and take top 3
                 const topRated = res.data
                     .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
