@@ -616,7 +616,7 @@ const CountryDetails = () => {
                             <iframe
                                 src={videoId
                                     ? `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=0&loop=1&playlist=${videoId}&enablejsapi=1`
-                                    : `https://www.youtube.com/embed?listType=search&list=${country.name.common}+travel+4k&autoplay=0&mute=0&loop=1&enablejsapi=1`
+                                    : `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(country.name.common + ' travel 4k')}&autoplay=0&mute=0&loop=1&enablejsapi=1`
                                 }
                                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -632,7 +632,7 @@ const CountryDetails = () => {
                 <h2 style={{ marginBottom: '2rem', textAlign: 'center' }}>Traveler Experiences</h2>
 
                 {/* Add/Edit Review Form */}
-                {token && (
+                {token ? (
                     <div ref={reviewRef} className="glass-card" style={{ marginBottom: '2rem', scrollMarginTop: '100px' }}>
                         <h3 style={{ marginBottom: '1rem' }}>
                             Share Your Experience
@@ -741,6 +741,14 @@ const CountryDetails = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                ) : (
+                    <div ref={reviewRef} className="glass-card" style={{ marginBottom: '2rem', textAlign: 'center', padding: '3rem', scrollMarginTop: '100px' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>Have you been here?</h3>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+                            Log in to share your experience, photos, and tips with other travelers.
+                        </p>
+                        <a href="/login" className="btn btn-primary">Login to Post</a>
                     </div>
                 )}
 
