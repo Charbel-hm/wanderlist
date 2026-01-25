@@ -36,7 +36,7 @@ app.use('/api/users', require('./routes/users'));
 
 const PORT = process.env.PORT || 5000;
 
-if (require.main === module) {
+if (require.main === module && !process.env.VERCEL) {
     app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 }
 
