@@ -9,6 +9,15 @@ const api = axios.create({
     }
 });
 
+export const getMediaUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('/uploads')) {
+        return `https://wanderlist-kdgg.onrender.com${path}`;
+    }
+    return path;
+};
+
 // Add a request interceptor to include the auth token
 api.interceptors.request.use(
     (config) => {

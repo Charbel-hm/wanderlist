@@ -1,4 +1,5 @@
 import { Star, Heart } from 'lucide-react';
+import { getMediaUrl } from '../utils/api';
 
 const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike }) => {
     return (
@@ -44,7 +45,7 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                     {review.media.map((path, idx) => {
                         const isVideo = path.match(/\.(mp4|webm)$/i);
-                        const fullPath = path;
+                        const fullPath = getMediaUrl(path);
 
                         return isVideo ? (
                             <video
