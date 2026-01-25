@@ -23,11 +23,15 @@ const sendVerificationEmail = async (email, token) => {
     // Production Email Sending
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail', // Standard for personal projects. For production, SendGrid/Mailgun is better.
+            host: 'smtp.gmail.com',
+            port: 465, // Use generic 465 (SSL)
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
-            }
+            },
+            // Force IPv4 to avoid timeouts on some cloud providers
+            family: 4
         });
 
         await transporter.sendMail({
@@ -45,9 +49,8 @@ const sendVerificationEmail = async (email, token) => {
         });
         console.log(`📧 Email sent to ${email}`);
     } catch (emailErr) {
-        console.error('Email sending failed:', emailErr);
-        // Don't crash registration if email fails, but log it.
-        // In strict mode, you might want to return an error here.
+        // Throw error so the caller knows it failed
+        throw emailErr;
     }
 };
 
@@ -136,6 +139,35 @@ router.get('/verify/:token', async (req, res) => {
         res.json({ msg: 'Email verified successfully' });
     } catch (err) {
         console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Resend Verification Email
+router.post('/resend-verification', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+        if (user.isVerified) return res.status(400).json({ msg: 'Account already verified' });
+
+        // Ensure token exists, if not generate one (edge case)
+        if (!user.verificationToken) {
+            const crypto = require('crypto');
+            user.verificationToken = crypto.randomBytes(20).toString('hex');
+            await user.save();
+        }
+
+        // Send Email (Non-blocking)
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            sendVerificationEmail(email, user.verificationToken)
+                .then(() => console.log(`📧 Resent email to ${email}`))
+                .catch(err => console.error("❌ Resend email failed:", err));
+        }
+
+        res.json({ msg: 'Verification email resent! Check your inbox.' });
+    } catch (err) {
+        console.error("Resend Error:", err.message);
         res.status(500).send('Server Error');
     }
 });

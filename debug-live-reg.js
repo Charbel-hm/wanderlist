@@ -19,6 +19,7 @@ const testRegister = async () => {
         const res = await axios.post(url, payload, { timeout: 15000 }); // 15s timeout
         const duration = (Date.now() - start) / 1000;
         console.log(`SUCCESS (${duration}s):`, res.status);
+        console.log('Headers:', res.headers);
         console.log('Body:', res.data);
     } catch (err) {
         const duration = (Date.now() - start) / 1000;

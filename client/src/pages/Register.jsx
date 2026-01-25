@@ -44,15 +44,51 @@ const Register = () => {
         }
     };
 
+    const [resendLoading, setResendLoading] = useState(false);
+    const [resendMsg, setResendMsg] = useState('');
+
+    const handleResend = async () => {
+        setResendLoading(true);
+        setResendMsg('');
+        try {
+            const res = await api.post('/auth/resend-verification', { email: formData.email });
+            setResendMsg(res.data.msg);
+        } catch (err) {
+            console.error(err);
+            setResendMsg('Failed to resend email.');
+        } finally {
+            setResendLoading(false);
+        }
+    };
+
     if (successMsg) {
         return (
             <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 1.5rem 2rem' }}>
                 <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '3rem', textAlign: 'center' }}>
                     <h2 style={{ marginBottom: '1rem', color: '#4ade80' }}>Registration Successful!</h2>
                     <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>{successMsg}</p>
-                    <Link to="/login" className="btn btn-primary" style={{ width: '100%', display: 'inline-block' }}>
+
+                    <Link to="/login" className="btn btn-primary" style={{ width: '100%', display: 'inline-block', marginBottom: '1rem' }}>
                         Go to Login
                     </Link>
+
+                    <button
+                        onClick={handleResend}
+                        disabled={resendLoading}
+                        style={{
+                            background: 'transparent',
+                            border: '1px solid var(--primary)',
+                            color: 'var(--primary)',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            opacity: resendLoading ? 0.7 : 1
+                        }}
+                    >
+                        {resendLoading ? 'Sending...' : 'Resend Verification Email'}
+                    </button>
+                    {resendMsg && <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: resendMsg.includes('Failed') ? '#f87171' : '#4ade80' }}>{resendMsg}</p>}
                 </div>
             </div>
         );
