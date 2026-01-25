@@ -3,16 +3,18 @@ import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import ExperienceCard from '../components/ExperienceCard';
 import { User, MapPin, Star, Edit2, Camera, Save, X, BookOpen, Globe, LogOut, List } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getMediaUrl } from '../utils/api';
 
 const Profile = () => {
+    const { username } = useParams(); // Get username from URL if present
     const [user, setUser] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('reviews'); // 'reviews' or 'visited'
-    const { logout } = useAuth(); // Get logout function
+    const { logout, user: authUser } = useAuth(); // Get authUser to compare
 
     // Edit Form State
     const [editForm, setEditForm] = useState({
@@ -24,25 +26,37 @@ const Profile = () => {
 
     const navigate = useNavigate();
 
+    // Check if looking at own profile
+    const isOwner = !username || (authUser && authUser.username === username);
+
     useEffect(() => {
         fetchProfileData();
-    }, []);
+    }, [username, authUser]); // Refetch when params change
 
     const fetchProfileData = async () => {
+        setLoading(true);
         try {
-            const userRes = await api.get('/auth/me');
-            setUser(userRes.data);
-            setEditForm({
-                fullName: userRes.data.fullName || '',
-                bio: userRes.data.bio || '',
-                profilePicture: null
-            });
+            if (isOwner) {
+                // Fetch My Profile
+                const userRes = await api.get('/auth/me');
+                setUser(userRes.data);
+                setEditForm({
+                    fullName: userRes.data.fullName || '',
+                    bio: userRes.data.bio || '',
+                    profilePicture: null
+                });
 
-            const reviewsRes = await api.get('/reviews/user');
-            setReviews(reviewsRes.data);
+                const reviewsRes = await api.get('/reviews/user');
+                setReviews(reviewsRes.data);
+            } else {
+                // Fetch Public Profile
+                const res = await api.get(`/users/${username}`);
+                setUser(res.data.user);
+                setReviews(res.data.reviews);
+            }
         } catch (err) {
             console.error("Failed to load profile:", err);
-            // navigate('/login'); // Optional redirect if auth fails
+            // navigate('/login'); // Optional redirect
         } finally {
             setLoading(false);
         }
@@ -71,19 +85,18 @@ const Profile = () => {
     };
 
     const handleDeleteReview = async (reviewId) => {
+        if (!isOwner) return; // Guard
         if (window.confirm('Are you sure you want to delete this review?')) {
             try {
                 await api.delete(`/reviews/${reviewId}`);
                 setReviews(reviews.filter(r => r._id !== reviewId));
-                // Update review count locally or refetch
-                setUser(prev => ({ ...prev, reviewCount: prev.reviewCount ? prev.reviewCount - 1 : 0 })); // Simplified
+                setUser(prev => ({ ...prev, reviewCount: prev.reviewCount ? prev.reviewCount - 1 : 0 }));
             } catch (err) {
                 console.error(err);
             }
         }
     };
 
-    // Need simpler like handler for profile (or pass same one)
     const handleLikeReview = async (reviewId) => {
         try {
             const res = await api.put(`/reviews/${reviewId}/like`);
@@ -94,19 +107,21 @@ const Profile = () => {
     };
 
     if (loading) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>Loading profile...</div>;
-    if (!user) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>Please login to view profile.</div>;
+    if (!user) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>User not found.</div>;
 
     return (
         <div className="container" style={{ paddingTop: '100px', paddingBottom: '4rem' }}>
             {/* Profile Header */}
             <div className="glass-card" style={{ marginBottom: '2rem', textAlign: 'center', position: 'relative' }}>
-                <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    title="Edit Profile"
-                >
-                    {isEditing ? <X size={24} /> : <Edit2 size={24} />}
-                </button>
+                {isOwner && (
+                    <button
+                        onClick={() => setIsEditing(!isEditing)}
+                        style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        title="Edit Profile"
+                    >
+                        {isEditing ? <X size={24} /> : <Edit2 size={24} />}
+                    </button>
+                )}
 
                 <div style={{ position: 'relative', display: 'inline-block', marginBottom: '1rem' }}>
                     <div style={{
@@ -114,11 +129,20 @@ const Profile = () => {
                         border: '4px solid var(--primary)', margin: '0 auto',
                         background: 'var(--bg-card)'
                     }}>
-                        <img
-                            src={previewImage || (user.profilePicture ? user.profilePicture : `https://ui-avatars.com/api/?name=${user.username}&background=random`)}
-                            alt="Profile"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
+                        {user.profilePicture ? (
+                            <img
+                                src={getMediaUrl(user.profilePicture)} // Use helper
+                                alt="Profile"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        ) : (
+                            <img
+                                src={`https://ui-avatars.com/api/?name=${user.username}&background=random`}
+                                alt="Profile"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        )}
+
                     </div>
                     {isEditing && (
                         <label style={{
@@ -193,25 +217,27 @@ const Profile = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                            <button
-                                onClick={() => navigate('/wanderlist')}
-                                className="btn btn-secondary"
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                            >
-                                <List size={18} /> My Wanderlist
-                            </button>
-                            <button
-                                onClick={() => { logout(); navigate('/'); }}
-                                className="btn"
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                    background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)'
-                                }}
-                            >
-                                <LogOut size={18} /> Logout
-                            </button>
-                        </div>
+                        {isOwner && (
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                                <button
+                                    onClick={() => navigate('/wanderlist')}
+                                    className="btn btn-secondary"
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <List size={18} /> My Wanderlist
+                                </button>
+                                <button
+                                    onClick={() => { logout(); navigate('/'); }}
+                                    className="btn"
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                        background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)'
+                                    }}
+                                >
+                                    <LogOut size={18} /> Logout
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
@@ -230,7 +256,7 @@ const Profile = () => {
                         fontWeight: '600'
                     }}
                 >
-                    My Reviews
+                    {isOwner ? 'My Reviews' : 'Reviews'}
                 </button>
                 <button
                     onClick={() => setActiveTab('visited')}
@@ -256,14 +282,14 @@ const Profile = () => {
                             <ExperienceCard
                                 key={review._id}
                                 review={review}
-                                currentUser={user}
+                                currentUser={authUser} // Use authUser for interactions
                                 onDelete={handleDeleteReview}
                                 onLike={handleLikeReview}
                             />
                         ))
                     ) : (
                         <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                            <p>You haven't written any reviews yet.</p>
+                            <p>No reviews yet.</p>
                         </div>
                     )}
                 </div>
@@ -278,7 +304,7 @@ const Profile = () => {
                         ))
                     ) : (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                            <p>You haven't marked any countries as visited yet.</p>
+                            <p>No visited countries yet.</p>
                         </div>
                     )}
                 </div>

@@ -59,6 +59,7 @@ const AppContent = () => {
           <Route path="/about" element={<About />} />
           <Route path="/game" element={<FlagGame />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:username" element={<Profile />} />
         </Routes>
       </main>
       <Footer />

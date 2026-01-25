@@ -1,11 +1,31 @@
-import { Star, Heart } from 'lucide-react';
+import { Star, Heart, User } from 'lucide-react';
 import { getMediaUrl } from '../utils/api';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import api from '../utils/api';
+import LikesModal from './LikesModal';
 
 const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike }) => {
+    const [showLikesModal, setShowLikesModal] = useState(false);
+    const [likedByUsers, setLikedByUsers] = useState([]);
+
+    const handleShowLikes = async (e) => {
+        e.stopPropagation();
+        if (review.likes === 0) return;
+
+        try {
+            const res = await api.get(`/reviews/${review._id}/likes`);
+            setLikedByUsers(res.data);
+            setShowLikesModal(true);
+        } catch (err) {
+            console.error("Failed to fetch likes", err);
+        }
+    };
+
     return (
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <Link to={`/profile/${review.username}`} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
                     <div style={{
                         width: '40px',
                         height: '40px',
@@ -14,8 +34,10 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        overflow: 'hidden'
                     }}>
+                        {/* Could add user avatar here if available in review object, else generic */}
                         {review.username.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -31,7 +53,7 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                             ))}
                         </div>
                     </div>
-                </div>
+                </Link>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     {new Date(review.createdAt).toLocaleDateString()}
                 </span>
@@ -68,27 +90,40 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
             )}
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <button
-                    onClick={() => onLike && onLike(review._id)}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: 'var(--secondary)',
-                        fontSize: '0.9rem',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0
-                    }}
-                >
-                    <Heart
-                        size={16}
-                        fill={review.likedBy?.includes(currentUser?._id) ? "#ef4444" : "none"}
-                        color={review.likedBy?.includes(currentUser?._id) ? "#ef4444" : "gold"}
-                    />
-                    {review.likes} Likes
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <button
+                        onClick={() => onLike && onLike(review._id)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: 'var(--secondary)',
+                            fontSize: '0.9rem',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0
+                        }}
+                    >
+                        <Heart
+                            size={16}
+                            fill={review.likedBy?.includes(currentUser?._id) ? "#ef4444" : "none"}
+                            color={review.likedBy?.includes(currentUser?._id) ? "#ef4444" : "gold"}
+                        />
+                    </button>
+                    <span
+                        onClick={handleShowLikes}
+                        style={{
+                            fontSize: '0.9rem',
+                            color: 'var(--text-muted)',
+                            cursor: review.likes > 0 ? 'pointer' : 'default',
+                            textDecoration: review.likes > 0 ? 'underline' : 'none'
+                        }}
+                    >
+                        {review.likes} Likes
+                    </span>
+                </div>
+
                 {currentUser && currentUser._id === review.userId && (
                     <button
                         onClick={() => onDelete(review._id)}
@@ -109,6 +144,12 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                     </button>
                 )}
             </div>
+
+            <LikesModal
+                isOpen={showLikesModal}
+                onClose={() => setShowLikesModal(false)}
+                likedBy={likedByUsers}
+            />
         </div>
     );
 };

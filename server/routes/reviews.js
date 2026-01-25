@@ -159,4 +159,16 @@ router.put('/:id/like', auth, async (req, res) => {
     }
 });
 
+// Get Review Likes (Populated)
+router.get('/:id/likes', async (req, res) => {
+    try {
+        const review = await Review.findById(req.params.id).populate('likedBy', 'username profilePicture fullName');
+        if (!review) return res.status(404).json({ msg: 'Review not found' });
+        res.json(review.likedBy);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;
