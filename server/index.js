@@ -10,6 +10,11 @@ app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static('uploads'));
 
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date() });
+});
+
 // DB Config
 const db = process.env.MONGO_URI || 'mongodb://localhost:27017/wanderlist';
 
