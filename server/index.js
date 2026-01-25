@@ -10,9 +10,29 @@ app.use(express.json());
 app.use(cors());
 app.use('/uploads', express.static('uploads'));
 
-// Health Check
+// Health Check & Debug
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date() });
+    const fs = require('fs');
+    const path = require('path');
+    try {
+        const rootDir = process.cwd();
+        const serverDir = path.join(rootDir, 'server');
+        // Check what exists
+        const rootFiles = fs.existsSync(rootDir) ? fs.readdirSync(rootDir) : ['Root not found'];
+        const serverFiles = fs.existsSync(serverDir) ? fs.readdirSync(serverDir) : ['Server dir not found'];
+
+        res.json({
+            status: 'ok',
+            timestamp: new Date(),
+            debug: {
+                cwd: rootDir,
+                rootFiles: rootFiles,
+                serverFiles: serverFiles
+            }
+        });
+    } catch (e) {
+        res.json({ status: 'error', error: e.message });
+    }
 });
 
 // DB Config
