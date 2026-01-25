@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import CountryCard from '../components/CountryCard';
+import LoadingScreen from '../components/LoadingScreen';
 import { Search, ChevronDown, Globe, ArrowUpDown, RefreshCw } from 'lucide-react';
 
 const Countries = () => {
@@ -211,9 +212,7 @@ const Countries = () => {
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '4rem' }}>
-                    <div className="text-gradient" style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Loading countries...</div>
-                </div>
+                <LoadingScreen />
             ) : error ? (
                 <div style={{ textAlign: 'center', padding: '4rem' }}>
                     <p style={{ color: 'var(--secondary)', fontSize: '1.25rem', marginBottom: '1rem' }}>{error}</p>
