@@ -353,225 +353,230 @@ const CountryDetails = () => {
                     </div>
                 </div>
 
-                <div className="container details-grid">
+            </div>
 
-                    {/* Main Content: About & Deep Dive */}
-                    <div>
-                        <div className="glass-card" style={{ marginBottom: '3rem' }}>
-                            <h2 style={{ marginBottom: '1.5rem' }}>About {country.name.common}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <Users color="var(--primary)" />
-                                    <span>Population: {formatPopulation(country.population)}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <Languages color="var(--secondary)" />
-                                    <span>Languages: {Object.values(country.languages || {}).join(', ')}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <DollarSign color="gold" />
-                                    <span>Currency: {Object.values(country.currencies || {}).map(c => c.name).join(', ')}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <MapPin color="var(--primary)" />
-                                    <span>Subregion: {country.subregion}</span>
-                                </div>
+
+            <div className="container details-grid">
+
+                {/* Main Content: About & Deep Dive */}
+                <div>
+                    <div className="glass-card" style={{ marginBottom: '3rem' }}>
+                        <h2 style={{ marginBottom: '1.5rem' }}>About {country.name.common}</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <Users color="var(--primary)" />
+                                <span>Population: {formatPopulation(country.population)}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <Languages color="var(--secondary)" />
+                                <span>Languages: {Object.values(country.languages || {}).join(', ')}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <DollarSign color="gold" />
+                                <span>Currency: {Object.values(country.currencies || {}).map(c => c.name).join(', ')}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <MapPin color="var(--primary)" />
+                                <span>Subregion: {country.subregion}</span>
                             </div>
                         </div>
+                    </div>
 
-                        {wikiData && (
-                            <div className="glass-card deep-dive-card">
-                                <h2 className="deep-dive-title">Deep Dive: {country.name.common}</h2>
+                    {wikiData && (
+                        <div className="glass-card deep-dive-card">
+                            <h2 className="deep-dive-title">Deep Dive: {country.name.common}</h2>
 
-                                {['History', 'Culture', 'Cuisine', 'Geography', 'Tourism'].map(section => {
-                                    const key = section.toLowerCase();
-                                    if (!wikiData[key]) return null;
-                                    const isOpen = expandedSections[key];
+                            {['History', 'Culture', 'Cuisine', 'Geography', 'Tourism'].map(section => {
+                                const key = section.toLowerCase();
+                                if (!wikiData[key]) return null;
+                                const isOpen = expandedSections[key];
 
-                                    return (
-                                        <div key={key} className="accordion-item">
-                                            <button
-                                                onClick={() => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }))}
-                                                className="accordion-trigger"
-                                                style={{
-                                                    background: isOpen ? 'rgba(255,255,255,0.05)' : 'transparent',
+                                return (
+                                    <div key={key} className="accordion-item">
+                                        <button
+                                            onClick={() => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }))}
+                                            className="accordion-trigger"
+                                            style={{
+                                                background: isOpen ? 'rgba(255,255,255,0.05)' : 'transparent',
+                                            }}
+                                        >
+                                            {section}
+                                            {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                        </button>
+                                        {isOpen && (
+                                            <div
+                                                className="accordion-content"
+                                                dangerouslySetInnerHTML={{ __html: wikiData[key] }}
+                                                onClick={(e) => {
+                                                    if (e.target.classList.contains('clickable-wiki-image')) {
+                                                        setSelectedImage({
+                                                            url: e.target.dataset.fullRes || e.target.src,
+                                                            title: section,
+                                                            description: 'From Wikipedia article'
+                                                        });
+                                                    }
                                                 }}
-                                            >
-                                                {section}
-                                                {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                                            </button>
-                                            {isOpen && (
-                                                <div
-                                                    className="accordion-content"
-                                                    dangerouslySetInnerHTML={{ __html: wikiData[key] }}
-                                                    onClick={(e) => {
-                                                        if (e.target.classList.contains('clickable-wiki-image')) {
-                                                            setSelectedImage({
-                                                                url: e.target.dataset.fullRes || e.target.src,
-                                                                title: section,
-                                                                description: 'From Wikipedia article'
-                                                            });
-                                                        }
-                                                    }}
-                                                />
-                                            )}
-                                        </div>
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Sidebar */}
+                <div>
+                    <div className="glass-card sidebar-sticky">
+                        <div
+                            style={{ textAlign: 'center', marginBottom: '2rem' }}
+                            onClick={scrollToReviews}
+                        >
+                            <span style={{
+                                fontSize: reviews.length > 0 ? '3rem' : '2rem',
+                                fontWeight: 'bold',
+                                display: 'block'
+                            }}>
+                                {reviews.length > 0
+                                    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+                                    : 'BE FIRST'}
+                            </span>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem', margin: '0.5rem 0' }}>
+                                {[1, 2, 3, 4, 5].map(i => {
+                                    const avg = reviews.length > 0
+                                        ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+                                        : 0;
+                                    return (
+                                        <Star
+                                            key={i}
+                                            size={16}
+                                            fill={i <= Math.round(avg) ? "gold" : "none"}
+                                            color={i <= Math.round(avg) ? "gold" : "rgba(255,255,255,0.2)"}
+                                        />
                                     );
                                 })}
                             </div>
-                        )}
-                    </div>
-
-                    {/* Sidebar */}
-                    <div>
-                        <div className="glass-card sidebar-sticky">
-                            <div
-                                style={{ textAlign: 'center', marginBottom: '2rem' }}
-                                onClick={scrollToReviews}
-                            >
-                                <span style={{
-                                    fontSize: reviews.length > 0 ? '3rem' : '2rem',
-                                    fontWeight: 'bold',
-                                    display: 'block'
-                                }}>
-                                    {reviews.length > 0
-                                        ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-                                        : 'BE FIRST'}
-                                </span>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem', margin: '0.5rem 0' }}>
-                                    {[1, 2, 3, 4, 5].map(i => {
-                                        const avg = reviews.length > 0
-                                            ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
-                                            : 0;
-                                        return (
-                                            <Star
-                                                key={i}
-                                                size={16}
-                                                fill={i <= Math.round(avg) ? "gold" : "none"}
-                                                color={i <= Math.round(avg) ? "gold" : "rgba(255,255,255,0.2)"}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                                <p style={{ color: 'var(--text-muted)' }}>
-                                    {reviews.length > 0 ? `Based on ${reviews.length} reviews` : 'Click to rate'}
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={handleAddToWanderlist}
-                                className={`btn ${isInWanderlist ? 'btn-secondary' : 'btn-primary'}`}
-                                style={{ width: '100%', marginBottom: '1rem' }}
-                                disabled={isInWanderlist}
-                            >
-                                {isInWanderlist ? (
-                                    <><Check size={18} style={{ marginRight: '0.5rem' }} /> In Wanderlist</>
-                                ) : (
-                                    <><Plus size={18} style={{ marginRight: '0.5rem' }} /> Add to Wanderlist</>
-                                )}
-                            </button>
-
-                            <button
-                                onClick={async () => {
-                                    if (!token) return alert('Please login first');
-                                    try {
-                                        if (visited) {
-                                            await api.delete(`/users/visited/${country.name.common}`);
-                                            setVisited(false);
-                                        } else {
-                                            await api.post('/users/visited', { countryName: country.name.common });
-                                            setVisited(true);
-                                        }
-                                    } catch (err) {
-                                        console.error(err);
-                                    }
-                                }}
-                                className="btn"
-                                style={{
-                                    width: '100%',
-                                    background: visited ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                                    color: visited ? '#34d399' : 'white',
-                                    border: visited ? '1px solid #34d399' : '1px solid var(--glass-border)'
-                                }}
-                            >
-                                {visited ? (
-                                    <><Check size={18} style={{ marginRight: '0.5rem' }} /> Visited</>
-                                ) : (
-                                    <><MapPin size={18} style={{ marginRight: '0.5rem' }} /> Mark as Visited</>
-                                )}
-                            </button>
+                            <p style={{ color: 'var(--text-muted)' }}>
+                                {reviews.length > 0 ? `Based on ${reviews.length} reviews` : 'Click to rate'}
+                            </p>
                         </div>
-                    </div>
 
+                        <button
+                            onClick={handleAddToWanderlist}
+                            className={`btn ${isInWanderlist ? 'btn-secondary' : 'btn-primary'}`}
+                            style={{ width: '100%', marginBottom: '1rem' }}
+                            disabled={isInWanderlist}
+                        >
+                            {isInWanderlist ? (
+                                <><Check size={18} style={{ marginRight: '0.5rem' }} /> In Wanderlist</>
+                            ) : (
+                                <><Plus size={18} style={{ marginRight: '0.5rem' }} /> Add to Wanderlist</>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                if (!token) return alert('Please login first');
+                                try {
+                                    if (visited) {
+                                        await api.delete(`/users/visited/${country.name.common}`);
+                                        setVisited(false);
+                                    } else {
+                                        await api.post('/users/visited', { countryName: country.name.common });
+                                        setVisited(true);
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                }
+                            }}
+                            className="btn"
+                            style={{
+                                width: '100%',
+                                background: visited ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                                color: visited ? '#34d399' : 'white',
+                                border: visited ? '1px solid #34d399' : '1px solid var(--glass-border)'
+                            }}
+                        >
+                            {visited ? (
+                                <><Check size={18} style={{ marginRight: '0.5rem' }} /> Visited</>
+                            ) : (
+                                <><MapPin size={18} style={{ marginRight: '0.5rem' }} /> Mark as Visited</>
+                            )}
+                        </button>
+                    </div>
                 </div>
+
             </div>
 
-            {/* Cinematic Gallery */}
-            {galleryImages.length > 0 && (
-                <div style={{ width: '100%', marginBottom: '4rem', padding: '2rem 0', background: 'rgba(0,0,0,0.2)' }}>
-                    <div className="container" style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ margin: 0, marginBottom: '0.5rem' }}>Cinematic Gallery</h2>
-                        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                            Curated highlights from {country.name.common}
-                        </p>
-                    </div>
 
-                    <div
-                        ref={scrollRef}
-                        style={{
-                            display: 'flex',
-                            gap: '1.5rem',
-                            overflowX: 'auto',
-                            scrollbarWidth: 'none',
-                            msOverflowStyle: 'none',
-                            padding: '0 5vw 2rem',
-                            scrollBehavior: 'smooth'
-                        }}
-                        className="hide-scrollbar"
-                    >
-                        {galleryImages.map((img, idx) => (
-                            <div
-                                key={idx}
-                                onClick={() => setSelectedImage(img)}
-                                style={{
-                                    minWidth: 'min(80vw, 350px)',
-                                    width: 'min(80vw, 350px)',
-                                    height: '450px',
-                                    borderRadius: '1rem',
-                                    overflow: 'hidden',
-                                    position: 'relative',
-                                    cursor: 'pointer',
-                                    flexShrink: 0,
-                                    background: '#222',
-                                    boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                                    transition: 'transform 0.3s'
-                                }}
-                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                            >
-                                <img
-                                    src={img.url}
-                                    alt={img.title}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    loading="lazy"
-                                />
-                                <div style={{
-                                    position: 'absolute',
-                                    bottom: 0,
-                                    left: 0,
-                                    right: 0,
-                                    background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
-                                    padding: '2rem 1.5rem',
-                                    pointerEvents: 'none'
-                                }}>
-                                    <p style={{ color: 'white', margin: 0, fontWeight: 'bold', fontSize: '1.25rem' }}>{img.title}</p>
-                                    {img.description && <p style={{ color: 'rgba(255,255,255,0.8)', margin: 0, fontSize: '1rem', marginTop: '0.5rem' }}>{img.description}</p>}
+            {/* Cinematic Gallery */}
+            {
+                galleryImages.length > 0 && (
+                    <div style={{ width: '100%', marginBottom: '4rem', padding: '2rem 0', background: 'rgba(0,0,0,0.2)' }}>
+                        <div className="container" style={{ marginBottom: '2rem' }}>
+                            <h2 style={{ margin: 0, marginBottom: '0.5rem' }}>Cinematic Gallery</h2>
+                            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                Curated highlights from {country.name.common}
+                            </p>
+                        </div>
+
+                        <div
+                            ref={scrollRef}
+                            style={{
+                                display: 'flex',
+                                gap: '1.5rem',
+                                overflowX: 'auto',
+                                scrollbarWidth: 'none',
+                                msOverflowStyle: 'none',
+                                padding: '0 5vw 2rem',
+                                scrollBehavior: 'smooth'
+                            }}
+                            className="hide-scrollbar"
+                        >
+                            {galleryImages.map((img, idx) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => setSelectedImage(img)}
+                                    style={{
+                                        minWidth: 'min(80vw, 350px)',
+                                        width: 'min(80vw, 350px)',
+                                        height: '450px',
+                                        borderRadius: '1rem',
+                                        overflow: 'hidden',
+                                        position: 'relative',
+                                        cursor: 'pointer',
+                                        flexShrink: 0,
+                                        background: '#222',
+                                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                                        transition: 'transform 0.3s'
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    <img
+                                        src={img.url}
+                                        alt={img.title}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        loading="lazy"
+                                    />
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
+                                        padding: '2rem 1.5rem',
+                                        pointerEvents: 'none'
+                                    }}>
+                                        <p style={{ color: 'white', margin: 0, fontWeight: 'bold', fontSize: '1.25rem' }}>{img.title}</p>
+                                        {img.description && <p style={{ color: 'rgba(255,255,255,0.8)', margin: 0, fontSize: '1rem', marginTop: '0.5rem' }}>{img.description}</p>}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Cinematic Tour */}
             <div style={{ width: '100%', marginBottom: '4rem', padding: '4rem 0', background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 100%)' }}>
@@ -758,244 +763,252 @@ const CountryDetails = () => {
                 </div>
             </div>
             {/* Lightbox Modal */}
-            {selectedImage && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.95)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        padding: '2rem'
-                    }}
-                    onClick={() => setSelectedImage(null)}
-                >
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+            {
+                selectedImage && (
+                    <div
                         style={{
-                            position: 'absolute', top: '2rem', right: '2rem',
-                            background: 'transparent', border: 'none', color: 'white', cursor: 'pointer'
+                            position: 'fixed',
+                            top: 0, left: 0, width: '100%', height: '100%',
+                            background: 'rgba(0,0,0,0.95)',
+                            zIndex: 9999,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            padding: '2rem'
                         }}
+                        onClick={() => setSelectedImage(null)}
                     >
-                        <X size={32} />
-                    </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                            style={{
+                                position: 'absolute', top: '2rem', right: '2rem',
+                                background: 'transparent', border: 'none', color: 'white', cursor: 'pointer'
+                            }}
+                        >
+                            <X size={32} />
+                        </button>
 
-                    <button
-                        onClick={prevImage}
-                        style={{
-                            position: 'absolute', left: '2rem', top: '50%', transform: 'translateY(-50%)',
-                            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
-                            borderRadius: '50%', width: '50px', height: '50px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                            backdropFilter: 'blur(5px)'
-                        }}
-                    >
-                        <ChevronLeft size={32} />
-                    </button>
+                        <button
+                            onClick={prevImage}
+                            style={{
+                                position: 'absolute', left: '2rem', top: '50%', transform: 'translateY(-50%)',
+                                background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+                                borderRadius: '50%', width: '50px', height: '50px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                backdropFilter: 'blur(5px)'
+                            }}
+                        >
+                            <ChevronLeft size={32} />
+                        </button>
 
-                    <div style={{ maxHeight: '90vh', maxWidth: '90vw', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                        <img
-                            src={selectedImage.url}
-                            alt={selectedImage.title}
-                            style={{ maxHeight: '80vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
-                        />
-                        <div style={{ marginTop: '1rem', color: 'white' }}>
-                            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{selectedImage.title}</h3>
-                            {selectedImage.description && <p style={{ color: 'rgba(255,255,255,0.8)' }}>{selectedImage.description}</p>}
+                        <div style={{ maxHeight: '90vh', maxWidth: '90vw', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                            <img
+                                src={selectedImage.url}
+                                alt={selectedImage.title}
+                                style={{ maxHeight: '80vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
+                            />
+                            <div style={{ marginTop: '1rem', color: 'white' }}>
+                                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{selectedImage.title}</h3>
+                                {selectedImage.description && <p style={{ color: 'rgba(255,255,255,0.8)' }}>{selectedImage.description}</p>}
+                            </div>
                         </div>
-                    </div>
 
-                    <button
-                        onClick={nextImage}
-                        style={{
-                            position: 'absolute', right: '2rem', top: '50%', transform: 'translateY(-50%)',
-                            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
-                            borderRadius: '50%', width: '50px', height: '50px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                            backdropFilter: 'blur(5px)'
-                        }}
-                    >
-                        <ChevronRight size={32} />
-                    </button>
-                </div>
-            )}
+                        <button
+                            onClick={nextImage}
+                            style={{
+                                position: 'absolute', right: '2rem', top: '50%', transform: 'translateY(-50%)',
+                                background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+                                borderRadius: '50%', width: '50px', height: '50px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                backdropFilter: 'blur(5px)'
+                            }}
+                        >
+                            <ChevronRight size={32} />
+                        </button>
+                    </div>
+                )
+            }
 
             {/* All Photos Grid Modal */}
-            {showAllGallery && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.95)',
-                        zIndex: 9999,
-                        padding: '2rem',
-                        overflowY: 'auto'
-                    }}
-                >
-                    <div className="container">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                            <div>
-                                <h2 style={{ color: 'white', margin: 0 }}>All Photos</h2>
-                                <p style={{ color: 'var(--text-muted)' }}>{country.name.common}</p>
-                            </div>
-                            <button
-                                onClick={() => setShowAllGallery(false)}
-                                style={{
-                                    background: 'transparent', border: 'none', color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <X size={48} />
-                            </button>
-                        </div>
-
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                            gap: '1.5rem'
-                        }}>
-                            {galleryImages.map((img, idx) => (
-                                <div
-                                    key={idx}
-                                    onClick={() => { setSelectedImage(img); }}
-                                    style={{
-                                        borderRadius: '0.5rem',
-                                        overflow: 'hidden',
-                                        aspectRatio: '2/3',
-                                        cursor: 'pointer',
-                                        position: 'relative',
-                                        background: '#222'
-                                    }}
-                                >
-                                    <img
-                                        src={img.url}
-                                        alt={img.title}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
-                                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                                        loading="lazy"
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                    background: 'rgba(0,0,0,0.8)', zIndex: 10000,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                    <div className="glass-card" style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
-                        <h3 style={{ marginBottom: '1rem', color: 'white' }}>Delete Review?</h3>
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
-                            Are you sure you want to delete your review? This action cannot be undone.
-                        </p>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                            <button
-                                onClick={() => setShowDeleteModal(false)}
-                                className="btn btn-secondary"
-                                style={{ padding: '0.75rem 1.5rem' }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmDelete}
-                                className="btn"
-                                style={{
-                                    padding: '0.75rem 1.5rem',
-                                    background: '#ef4444',
-                                    color: 'white',
-                                    border: 'none'
-                                }}
-                            >
-                                Yes, Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Review Lightbox Modal */}
-            {lightbox.isOpen && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.95)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                    onClick={closeLightbox}
-                >
-                    <button
-                        onClick={closeLightbox}
+            {
+                showAllGallery && (
+                    <div
                         style={{
-                            position: 'absolute', top: '2rem', right: '2rem',
-                            background: 'transparent', border: 'none', color: 'white',
-                            cursor: 'pointer'
+                            position: 'fixed',
+                            top: 0, left: 0, width: '100%', height: '100%',
+                            background: 'rgba(0,0,0,0.95)',
+                            zIndex: 9999,
+                            padding: '2rem',
+                            overflowY: 'auto'
                         }}
                     >
-                        <X size={48} />
-                    </button>
+                        <div className="container">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                                <div>
+                                    <h2 style={{ color: 'white', margin: 0 }}>All Photos</h2>
+                                    <p style={{ color: 'var(--text-muted)' }}>{country.name.common}</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowAllGallery(false)}
+                                    style={{
+                                        background: 'transparent', border: 'none', color: 'white',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <X size={48} />
+                                </button>
+                            </div>
 
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', maxWidth: '90vw', maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
-                        {lightbox.media.length > 1 && (
-                            <button
-                                onClick={prevImage}
-                                style={{
-                                    background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
-                                    cursor: 'pointer', padding: '1rem', borderRadius: '50%',
-                                    marginRight: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}
-                            >
-                                <ChevronLeft size={32} />
-                            </button>
-                        )}
-
-                        {lightbox.media[lightbox.index].match(/\.(mp4|webm)$/i) ? (
-                            <video
-                                src={`http://localhost:5000${lightbox.media[lightbox.index]}`}
-                                controls
-                                autoPlay
-                                style={{ maxHeight: '80vh', maxWidth: '100%', borderRadius: '0.5rem', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}
-                            />
-                        ) : (
-                            <img
-                                src={`http://localhost:5000${lightbox.media[lightbox.index]}`}
-                                alt="Review media"
-                                style={{ maxHeight: '80vh', maxWidth: '100%', borderRadius: '0.5rem', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}
-                            />
-                        )}
-
-                        {lightbox.media.length > 1 && (
-                            <button
-                                onClick={nextImage}
-                                style={{
-                                    background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
-                                    cursor: 'pointer', padding: '1rem', borderRadius: '50%',
-                                    marginLeft: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}
-                            >
-                                <ChevronRight size={32} />
-                            </button>
-                        )}
-
-                        <div style={{ position: 'absolute', bottom: '-40px', left: 0, width: '100%', textAlign: 'center', color: '#888' }}>
-                            {lightbox.index + 1} / {lightbox.media.length}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                                gap: '1.5rem'
+                            }}>
+                                {galleryImages.map((img, idx) => (
+                                    <div
+                                        key={idx}
+                                        onClick={() => { setSelectedImage(img); }}
+                                        style={{
+                                            borderRadius: '0.5rem',
+                                            overflow: 'hidden',
+                                            aspectRatio: '2/3',
+                                            cursor: 'pointer',
+                                            position: 'relative',
+                                            background: '#222'
+                                        }}
+                                    >
+                                        <img
+                                            src={img.url}
+                                            alt={img.title}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
+                                            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                                            onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-        </div>
+            {/* Delete Confirmation Modal */}
+            {
+                showDeleteModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        background: 'rgba(0,0,0,0.8)', zIndex: 10000,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <div className="glass-card" style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
+                            <h3 style={{ marginBottom: '1rem', color: 'white' }}>Delete Review?</h3>
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
+                                Are you sure you want to delete your review? This action cannot be undone.
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="btn btn-secondary"
+                                    style={{ padding: '0.75rem 1.5rem' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="btn"
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        border: 'none'
+                                    }}
+                                >
+                                    Yes, Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Review Lightbox Modal */}
+            {
+                lightbox.isOpen && (
+                    <div
+                        style={{
+                            position: 'fixed',
+                            top: 0, left: 0, width: '100%', height: '100%',
+                            background: 'rgba(0,0,0,0.95)',
+                            zIndex: 9999,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                        onClick={closeLightbox}
+                    >
+                        <button
+                            onClick={closeLightbox}
+                            style={{
+                                position: 'absolute', top: '2rem', right: '2rem',
+                                background: 'transparent', border: 'none', color: 'white',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <X size={48} />
+                        </button>
+
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', maxWidth: '90vw', maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+                            {lightbox.media.length > 1 && (
+                                <button
+                                    onClick={prevImage}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+                                        cursor: 'pointer', padding: '1rem', borderRadius: '50%',
+                                        marginRight: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}
+                                >
+                                    <ChevronLeft size={32} />
+                                </button>
+                            )}
+
+                            {lightbox.media[lightbox.index].match(/\.(mp4|webm)$/i) ? (
+                                <video
+                                    src={`http://localhost:5000${lightbox.media[lightbox.index]}`}
+                                    controls
+                                    autoPlay
+                                    style={{ maxHeight: '80vh', maxWidth: '100%', borderRadius: '0.5rem', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}
+                                />
+                            ) : (
+                                <img
+                                    src={`http://localhost:5000${lightbox.media[lightbox.index]}`}
+                                    alt="Review media"
+                                    style={{ maxHeight: '80vh', maxWidth: '100%', borderRadius: '0.5rem', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}
+                                />
+                            )}
+
+                            {lightbox.media.length > 1 && (
+                                <button
+                                    onClick={nextImage}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+                                        cursor: 'pointer', padding: '1rem', borderRadius: '50%',
+                                        marginLeft: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}
+                                >
+                                    <ChevronRight size={32} />
+                                </button>
+                            )}
+
+                            <div style={{ position: 'absolute', bottom: '-40px', left: 0, width: '100%', textAlign: 'center', color: '#888' }}>
+                                {lightbox.index + 1} / {lightbox.media.length}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+        </div >
     );
 };
 
