@@ -48,7 +48,16 @@ if (process.env.MONGO_URI) {
     console.warn('No MONGO_URI found. Database features will be disabled.');
 }
 
+app.get('/api/probe', (req, res) => {
+    res.json({ message: "Vercel Function is working!", url: req.url });
+});
+
 // Routes
+app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    next();
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/countries', require('./routes/countries'));
 app.use('/api/wiki', require('./routes/wiki'));
@@ -57,6 +66,15 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/youtube', require('./routes/youtube'));
 app.use('/api/game', require('./routes/game'));
 app.use('/api/users', require('./routes/users'));
+
+// Catch-all info for unmatched routes starting with /api
+app.use('/api/*', (req, res) => {
+    res.status(404).json({
+        error: "API Route Not Found",
+        path: req.originalUrl,
+        available: ["/api/health", "/api/probe", "/api/countries"]
+    });
+});
 
 const PORT = process.env.PORT || 5000;
 
