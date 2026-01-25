@@ -27,7 +27,12 @@ app.get('/api/health', (req, res) => {
             debug: {
                 cwd: rootDir,
                 rootFiles: rootFiles,
-                serverFiles: serverFiles
+                serverFiles: serverFiles,
+                mongoStatus: mongoose.connection.readyState, // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+                envChecks: {
+                    MONGO_URI: !!process.env.MONGO_URI,
+                    JWT_SECRET: !!process.env.JWT_SECRET
+                }
             }
         });
     } catch (e) {
