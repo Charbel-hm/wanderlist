@@ -13,7 +13,9 @@ const nodemailer = require('nodemailer');
 // Helper to send email
 const sendVerificationEmail = async (email, token) => {
     // For now, print to console to simulate if no credentials
-    const url = `https://wanderlist-kdgg.onrender.com/verify-email?token=${token}`; // Frontend URL
+    // Use Vercel Frontend URL for the link
+    const clientUrl = process.env.CLIENT_URL || 'https://wanderlist-nine.vercel.app';
+    const url = `${clientUrl}/verify-email?token=${token}`;
 
     console.log('------------------------------------------');
     console.log(`📧 SENDING VERIFICATION EMAIL TO: ${email}`);
