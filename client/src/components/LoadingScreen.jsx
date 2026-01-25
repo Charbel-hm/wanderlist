@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LoadingScreen = () => {
+const LoadingScreen = ({ onDismiss }) => {
     return (
         <div style={{
             position: 'fixed',
@@ -53,8 +53,25 @@ const LoadingScreen = () => {
                 letterSpacing: '2px',
                 animation: 'fadeIn 1s ease-out'
             }}>
-                WANDERLIST
             </h2>
+
+            <button
+                onClick={onDismiss}
+                style={{
+                    marginTop: '2rem',
+                    background: 'transparent',
+                    border: '1px solid var(--text-muted)',
+                    color: 'var(--text-muted)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    zIndex: 10000,
+                    pointerEvents: 'auto'
+                }}
+            >
+                Dismiss (Stuck?)
+            </button>
         </div>
     );
 };
