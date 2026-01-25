@@ -1,0 +1,135 @@
+/* client/src/styles/CountryDetails.css */
+
+.country-details-page {
+    padding-top: 80px;
+    padding-bottom: 4rem;
+}
+
+.country-header {
+    height: 400px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 3rem;
+    margin-bottom: 3rem;
+}
+
+.country-header-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.5);
+    z-index: -1;
+    transition: background-image 0.5s ease-in-out;
+}
+
+.header-meta {
+    display: flex;
+    gap: 2rem;
+    font-size: 1.1rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+}
+
+/* Glass Card Deep Dive overrides */
+.deep-dive-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.deep-dive-title {
+    padding: 2rem 2rem 1rem;
+}
+
+.accordion-item {
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.accordion-trigger {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.accordion-trigger:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.accordion-content {
+    padding: 0 2rem 2rem;
+    line-height: 1.8;
+    color: var(--text-main);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Sidebar */
+.sidebar-sticky {
+    position: sticky;
+    top: 100px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .country-header {
+        height: 300px;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        /* Smaller title on mobile */
+    }
+
+    .header-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .sidebar-sticky {
+        position: static;
+        /* No sticky on mobile usually better UX or z-index issues */
+    }
+
+    .deep-dive-title,
+    .accordion-trigger,
+    .accordion-content {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}

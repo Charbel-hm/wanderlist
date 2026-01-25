@@ -15,6 +15,7 @@ const FlagGame = () => {
     const [highScore, setHighScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(60);
     const [user, setUser] = useState(null);
+    const [isImageLoading, setIsImageLoading] = useState(true);
 
     const timerRef = useRef(null);
 
@@ -48,6 +49,7 @@ const FlagGame = () => {
     // Timer Logic
     useEffect(() => {
         if (gameState !== 'playing') return;
+        if (isImageLoading) return; // Pause timer if image is loading
 
         if (timeLeft > 0) {
             timerRef.current = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
@@ -56,13 +58,14 @@ const FlagGame = () => {
         }
 
         return () => clearTimeout(timerRef.current);
-    }, [timeLeft, gameState]);
+    }, [timeLeft, gameState, isImageLoading]);
 
     const startGame = () => {
         setScore(0);
         setCurrentQuestion(0);
         setGameState('playing');
         setTimeLeft(60);
+        setIsImageLoading(true);
         generateQuestions();
     };
 
@@ -102,6 +105,7 @@ const FlagGame = () => {
         // Always move next, instant feedback could be added here (e.g. green/red flash)
         // For speed, we just go next instantly.
         if (currentQuestion + 1 < questions.length) {
+            setIsImageLoading(true); // Reset loading for next image
             setCurrentQuestion(prev => prev + 1);
         } else {
             // Looped all countries? End game
@@ -217,16 +221,21 @@ const FlagGame = () => {
                             </button>
                         </div>
 
-                        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '3rem', minHeight: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {questions[currentQuestion] ? (
-                                <img
-                                    src={questions[currentQuestion].correct.flags.svg}
-                                    alt="Flag"
-                                    style={{
-                                        height: '240px', borderRadius: '1rem',
-                                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)', maxWidth: '100%', objectFit: 'contain'
-                                    }}
-                                />
+                                <>
+                                    {isImageLoading && <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%' }}></div>}
+                                    <img
+                                        src={questions[currentQuestion].correct.flags.svg}
+                                        alt="Flag"
+                                        onLoad={() => setIsImageLoading(false)}
+                                        style={{
+                                            display: isImageLoading ? 'none' : 'block',
+                                            height: '240px', borderRadius: '1rem',
+                                            boxShadow: '0 20px 40px rgba(0,0,0,0.4)', maxWidth: '100%', objectFit: 'contain'
+                                        }}
+                                    />
+                                </>
                             ) : <div>Loading...</div>}
                         </div>
 

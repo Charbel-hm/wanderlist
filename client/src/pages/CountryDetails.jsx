@@ -6,6 +6,7 @@ import ExperienceCard from '../components/ExperienceCard';
 import { MapPin, Users, DollarSign, Languages, Star, Plus, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Grid } from 'lucide-react';
 import { formatPopulation } from '../utils/formatters';
 import LoadingScreen from '../components/LoadingScreen';
+import '../styles/CountryDetails.css';
 
 const CountryDetails = () => {
     const { name } = useParams();
@@ -338,29 +339,15 @@ const CountryDetails = () => {
 
 
     return (
-        <div style={{ paddingTop: '80px', paddingBottom: '4rem' }}>
+        <div className="country-details-page">
             {/* Header */}
-            <div style={{
-                height: '400px',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'flex-end',
-                paddingBottom: '3rem',
-                marginBottom: '3rem'
-            }}>
-                <div style={{
-                    position: 'absolute',
-                    top: 0, left: 0, width: '100%', height: '100%',
-                    backgroundImage: `url(${headerImage})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    filter: 'brightness(0.5)',
-                    zIndex: -1,
-                    transition: 'background-image 0.5s ease-in-out'
+            <div className="country-header">
+                <div className="country-header-bg" style={{
+                    backgroundImage: `url(${headerImage})`
                 }}></div>
                 <div className="container">
                     <h1 className="header-title" style={{ marginBottom: '1rem' }}>{country.name.common}</h1>
-                    <div style={{ display: 'flex', gap: '2rem', fontSize: '1.1rem' }}>
+                    <div className="header-meta">
                         <span>{country.region}</span>
                         <span>Capital: {country.capital?.[0]}</span>
                     </div>
@@ -393,8 +380,8 @@ const CountryDetails = () => {
                         </div>
 
                         {wikiData && (
-                            <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-                                <h2 style={{ padding: '2rem 2rem 1rem' }}>Deep Dive: {country.name.common}</h2>
+                            <div className="glass-card deep-dive-card">
+                                <h2 className="deep-dive-title">Deep Dive: {country.name.common}</h2>
 
                                 {['History', 'Culture', 'Cuisine', 'Geography', 'Tourism'].map(section => {
                                     const key = section.toLowerCase();
@@ -402,22 +389,12 @@ const CountryDetails = () => {
                                     const isOpen = expandedSections[key];
 
                                     return (
-                                        <div key={key} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                        <div key={key} className="accordion-item">
                                             <button
                                                 onClick={() => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }))}
+                                                className="accordion-trigger"
                                                 style={{
-                                                    width: '100%',
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    padding: '1.5rem 2rem',
                                                     background: isOpen ? 'rgba(255,255,255,0.05)' : 'transparent',
-                                                    border: 'none',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    fontSize: '1.1rem',
-                                                    fontWeight: 'bold',
-                                                    transition: 'background 0.2s'
                                                 }}
                                             >
                                                 {section}
@@ -425,7 +402,7 @@ const CountryDetails = () => {
                                             </button>
                                             {isOpen && (
                                                 <div
-                                                    style={{ padding: '0 2rem 2rem', lineHeight: '1.8', color: 'var(--text-main)', animation: 'slideDown 0.3s ease-out' }}
+                                                    className="accordion-content"
                                                     dangerouslySetInnerHTML={{ __html: wikiData[key] }}
                                                     onClick={(e) => {
                                                         if (e.target.classList.contains('clickable-wiki-image')) {
@@ -447,7 +424,7 @@ const CountryDetails = () => {
 
                     {/* Sidebar */}
                     <div>
-                        <div className="glass-card" style={{ position: 'sticky', top: '100px' }}>
+                        <div className="glass-card sidebar-sticky">
                             <div
                                 style={{ textAlign: 'center', marginBottom: '2rem' }}
                                 onClick={scrollToReviews}
