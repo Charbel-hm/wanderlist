@@ -105,9 +105,11 @@ router.post('/register', async (req, res) => {
         await wanderlist.save();
         console.log('Wanderlist created');
 
-        // Send Email
+        // Send Email (Non-blocking)
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            await sendVerificationEmail(email, verificationToken);
+            sendVerificationEmail(email, verificationToken)
+                .then(() => console.log(`📧 Background email sent to ${email}`))
+                .catch(err => console.error("❌ Background email failed:", err));
         } else {
             console.log('Skipping email: No credentials provided in environment');
         }
