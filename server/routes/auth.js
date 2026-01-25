@@ -114,6 +114,7 @@ router.post('/register', async (req, res) => {
             console.log('Skipping email: No credentials provided in environment');
         }
 
+        res.setHeader('X-Debug-Version', 'v2-async-email');
         res.json({ msg: 'Registration successful! Please check your email to verify your account.' });
 
     } catch (err) {
