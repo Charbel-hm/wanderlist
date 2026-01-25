@@ -265,9 +265,8 @@ const CountryDetails = () => {
                 formData.append('media', file);
             });
 
-            // Use simple axios for multipart/form-data with relative path
-            const token = localStorage.getItem('token');
-            const res = await axios.post('/api/reviews', formData, {
+            // Direct upload to Render
+            const res = await axios.post('https://wanderlist-kdgg.onrender.com/api/reviews', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'x-auth-token': token

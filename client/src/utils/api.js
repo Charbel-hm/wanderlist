@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// Direct connection to Render backend to bypass Vercel proxy issues
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: 'https://wanderlist-kdgg.onrender.com/api',
     headers: {
         'Content-Type': 'application/json'
     }
