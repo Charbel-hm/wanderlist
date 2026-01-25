@@ -5,8 +5,9 @@ import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
     const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+    const [successMsg, setSuccessMsg] = useState('');
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login } = useAuth(); // Still needed if we want to redirect to login
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,13 +26,28 @@ const Register = () => {
 
         try {
             const res = await api.post('/auth/register', formData);
-            login(res.data.user, res.data.token);
-            navigate('/wanderlist');
+            setSuccessMsg(res.data.msg);
+            // login(res.data.user, res.data.token); // Removed auto-login
+            // navigate('/wanderlist');
         } catch (err) {
             console.error("Registration Error:", err);
             alert(err.response?.data?.msg || 'Registration failed');
         }
     };
+
+    if (successMsg) {
+        return (
+            <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 1.5rem 2rem' }}>
+                <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '3rem', textAlign: 'center' }}>
+                    <h2 style={{ marginBottom: '1rem', color: '#4ade80' }}>Registration Successful!</h2>
+                    <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>{successMsg}</p>
+                    <Link to="/login" className="btn btn-primary" style={{ width: '100%', display: 'inline-block' }}>
+                        Go to Login
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 1.5rem 2rem' }}>

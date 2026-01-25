@@ -38,7 +38,13 @@ const UserSchema = new mongoose.Schema({
   visitedCountries: {
     type: [String],
     default: []
-  }
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationToken: String,
+  verificationTokenExpires: Date
 });
 
 module.exports = mongoose.model('User', UserSchema);

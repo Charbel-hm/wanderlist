@@ -7,6 +7,51 @@ const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 
 // Register
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+
+// Helper to send email
+const sendVerificationEmail = async (email, token) => {
+    // For now, print to console to simulate if no credentials
+    const url = `https://wanderlist-kdgg.onrender.com/verify-email?token=${token}`; // Frontend URL
+
+    console.log('------------------------------------------');
+    console.log(`📧 SENDING VERIFICATION EMAIL TO: ${email}`);
+    console.log(`🔗 LINK: ${url}`);
+    console.log('------------------------------------------');
+
+    // Production Email Sending
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail', // Standard for personal projects. For production, SendGrid/Mailgun is better.
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            from: `"Wanderlist" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: 'Verify your Wanderlist account',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #333;">Welcome to Wanderlist! 🌍</h2>
+                    <p>Please verify your email address to start your journey.</p>
+                    <a href="${url}" style="display: inline-block; background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">Verify Email</a>
+                    <p style="margin-top: 20px; color: #777; fontSize: 12px;">Or copy this link: <br/>${url}</p>
+                </div>
+            `
+        });
+        console.log(`📧 Email sent to ${email}`);
+    } catch (emailErr) {
+        console.error('Email sending failed:', emailErr);
+        // Don't crash registration if email fails, but log it.
+        // In strict mode, you might want to return an error here.
+    }
+};
+
+// Register
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
@@ -41,10 +86,15 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // Generate Verification Token
+        const verificationToken = crypto.randomBytes(20).toString('hex');
+
         user = new User({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            verificationToken,
+            isVerified: false
         });
 
         await user.save();
@@ -53,16 +103,31 @@ router.post('/register', async (req, res) => {
         const wanderlist = new Wanderlist({ userId: user._id, countries: [] });
         await wanderlist.save();
 
-        const payload = { user: { id: user._id, username: user.username } };
+        // Send Email
+        await sendVerificationEmail(email, verificationToken);
 
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
-        });
+        res.json({ msg: 'Registration successful! Please check your email to verify your account.' });
 
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
+    }
+});
+
+// Verify Email Route
+router.get('/verify/:token', async (req, res) => {
+    try {
+        const user = await User.findOne({ verificationToken: req.params.token });
+        if (!user) return res.status(400).json({ msg: 'Invalid or expired token' });
+
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        await user.save();
+
+        res.json({ msg: 'Email verified successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
 });
 
@@ -73,6 +138,11 @@ router.post('/login', async (req, res) => {
     try {
         let user = await User.findOne({ email });
         if (!user) return res.status(400).json({ msg: 'Invalid Credentials' });
+
+        // Check if verified
+        if (!user.isVerified) {
+            return res.status(400).json({ msg: 'Please verify your email before logging in.' });
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
