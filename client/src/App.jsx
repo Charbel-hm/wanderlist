@@ -46,7 +46,7 @@ const AppContent = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {isLoading && <LoadingScreen onDismiss={() => setForceHide(true)} />}
+      {isLoading && <LoadingScreen />}
       <Navbar />
       <main>
         <Routes>
