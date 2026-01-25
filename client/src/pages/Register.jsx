@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,11 +10,25 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Client-side Validation
+        if (formData.password.length < 8) {
+            return alert('Password must be at least 8 characters long');
+        }
+        if (!/[a-zA-Z]/.test(formData.password) || !/\d/.test(formData.password)) {
+            return alert('Password must contain both letters and numbers');
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            return alert('Invalid email format');
+        }
+
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+            const res = await api.post('/auth/register', formData);
             login(res.data.user, res.data.token);
             navigate('/wanderlist');
         } catch (err) {
+            console.error("Registration Error:", err);
             alert(err.response?.data?.msg || 'Registration failed');
         }
     };

@@ -10,6 +10,27 @@ const auth = require('../middleware/auth');
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
+    // Validation
+    if (!username || !email || !password) {
+        return res.status(400).json({ msg: 'Please enter all fields' });
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ msg: 'Invalid email format' });
+    }
+
+    // Password validation (min 8 chars, alphanumeric)
+    if (password.length < 8) {
+        return res.status(400).json({ msg: 'Password must be at least 8 characters long' });
+    }
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    if (!hasLetter || !hasNumber) {
+        return res.status(400).json({ msg: 'Password must contain both letters and numbers' });
+    }
+
     try {
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ msg: 'User already exists' });
