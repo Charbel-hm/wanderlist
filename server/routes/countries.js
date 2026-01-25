@@ -4,8 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to data file
-// Path to data file - adaptable for local and Vercel
-const dataPath = path.join(process.cwd(), 'server', 'data', 'countries.json');
+// Path to data file
+const dataPath = path.join(__dirname, '../data/countries.json');
 
 // Helper to get data
 const getCountriesData = () => {
