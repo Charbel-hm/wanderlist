@@ -68,7 +68,8 @@ app.use('/api/game', require('./routes/game'));
 app.use('/api/users', require('./routes/users'));
 
 // Catch-all info for unmatched routes starting with /api
-app.use('/api/*', (req, res) => {
+// Catch-all info for unmatched routes starting with /api
+app.use('/api', (req, res) => {
     res.status(404).json({
         error: "API Route Not Found",
         path: req.originalUrl,
