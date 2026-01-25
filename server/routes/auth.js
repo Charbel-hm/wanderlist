@@ -98,19 +98,25 @@ router.post('/register', async (req, res) => {
         });
 
         await user.save();
+        console.log('User created:', user._id);
 
         // Create empty wanderlist for user
         const wanderlist = new Wanderlist({ userId: user._id, countries: [] });
         await wanderlist.save();
+        console.log('Wanderlist created');
 
         // Send Email
-        await sendVerificationEmail(email, verificationToken);
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            await sendVerificationEmail(email, verificationToken);
+        } else {
+            console.log('Skipping email: No credentials provided in environment');
+        }
 
         res.json({ msg: 'Registration successful! Please check your email to verify your account.' });
 
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        console.error("Registration Error:", err.message);
+        res.status(500).json({ msg: 'Server error: ' + err.message });
     }
 });
 
