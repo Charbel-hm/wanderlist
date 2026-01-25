@@ -20,7 +20,7 @@ const Register = () => {
     };
 
     return (
-        <div className="container" style={{ paddingTop: '120px', display: 'flex', justifyContent: 'center' }}>
+        <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 1.5rem 2rem' }}>
             <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '3rem' }}>
                 <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Create Account</h2>
                 <form onSubmit={handleSubmit}>

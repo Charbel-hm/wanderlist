@@ -373,7 +373,7 @@ const Home = () => {
             )}
 
             <section id="game-section" style={{ padding: '6rem 0', background: 'rgba(0,0,0,0.2)' }}>
-                <div className="container" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+                <div className="container game-section-container" style={{ display: 'grid', gap: '4rem', alignItems: 'center' }}>
                     <div>
                         <div style={{ display: 'inline-block', padding: '0.5rem 1rem', background: 'var(--secondary)', color: 'black', fontWeight: 'bold', borderRadius: '2rem', marginBottom: '1.5rem' }}>
                             NEW MINIGAME
@@ -471,6 +471,18 @@ const Home = () => {
                     </div>
                 </div>
             </section>
+
+            <style>{`
+                .game-section-container {
+                    grid-template-columns: 1fr 1fr;
+                }
+                @media (max-width: 900px) {
+                    .game-section-container {
+                        grid-template-columns: 1fr;
+                        gap: 3rem !important;
+                    }
+                }
+            `}</style>
         </div >
     );
 };

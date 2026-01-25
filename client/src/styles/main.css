@@ -30,6 +30,13 @@
   --font-heading: 'Outfit', sans-serif;
 }
 
+@media (max-width: 768px) {
+  :root {
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2.5rem;
+  }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -73,8 +80,13 @@ button {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
-  /* Increased padding */
   width: 100%;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
 }
 
 .title {

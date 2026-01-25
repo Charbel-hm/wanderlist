@@ -359,16 +359,14 @@ const CountryDetails = () => {
                     transition: 'background-image 0.5s ease-in-out'
                 }}></div>
                 <div className="container">
-                    <h1 style={{ fontSize: '4rem', marginBottom: '1rem' }}>{country.name.common}</h1>
+                    <h1 className="header-title" style={{ marginBottom: '1rem' }}>{country.name.common}</h1>
                     <div style={{ display: 'flex', gap: '2rem', fontSize: '1.1rem' }}>
                         <span>{country.region}</span>
                         <span>Capital: {country.capital?.[0]}</span>
                     </div>
                 </div>
-            </div>
 
-            <div className="container">
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '3rem', marginBottom: '3rem' }}>
+                <div className="container details-grid">
 
                     {/* Main Content: About & Deep Dive */}
                     <div>
@@ -559,8 +557,8 @@ const CountryDetails = () => {
                                 key={idx}
                                 onClick={() => setSelectedImage(img)}
                                 style={{
-                                    minWidth: '350px',
-                                    width: '350px',
+                                    minWidth: 'min(80vw, 350px)',
+                                    width: 'min(80vw, 350px)',
                                     height: '450px',
                                     borderRadius: '1rem',
                                     overflow: 'hidden',
@@ -798,24 +796,52 @@ const CountryDetails = () => {
                     onClick={() => setSelectedImage(null)}
                 >
                     <button
-                        onClick={() => setSelectedImage(null)}
+                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
                         style={{
                             position: 'absolute', top: '2rem', right: '2rem',
-                            background: 'transparent', border: 'none', color: 'white',
-                            cursor: 'pointer'
+                            background: 'transparent', border: 'none', color: 'white', cursor: 'pointer'
                         }}
                     >
-                        <X size={48} />
+                        <X size={32} />
                     </button>
+
+                    <button
+                        onClick={prevImage}
+                        style={{
+                            position: 'absolute', left: '2rem', top: '50%', transform: 'translateY(-50%)',
+                            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+                            borderRadius: '50%', width: '50px', height: '50px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                            backdropFilter: 'blur(5px)'
+                        }}
+                    >
+                        <ChevronLeft size={32} />
+                    </button>
+
                     <div style={{ maxHeight: '90vh', maxWidth: '90vw', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
                         <img
                             src={selectedImage.url}
                             alt={selectedImage.title}
-                            style={{ maxHeight: '80vh', maxWidth: '100%', borderRadius: '0.5rem', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}
+                            style={{ maxHeight: '80vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
                         />
-                        <h2 style={{ marginTop: '1rem', color: 'white' }}>{selectedImage.title}</h2>
-                        <p style={{ color: '#ccc' }}>{selectedImage.description}</p>
+                        <div style={{ marginTop: '1rem', color: 'white' }}>
+                            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{selectedImage.title}</h3>
+                            {selectedImage.description && <p style={{ color: 'rgba(255,255,255,0.8)' }}>{selectedImage.description}</p>}
+                        </div>
                     </div>
+
+                    <button
+                        onClick={nextImage}
+                        style={{
+                            position: 'absolute', right: '2rem', top: '50%', transform: 'translateY(-50%)',
+                            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+                            borderRadius: '50%', width: '50px', height: '50px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                            backdropFilter: 'blur(5px)'
+                        }}
+                    >
+                        <ChevronRight size={32} />
+                    </button>
                 </div>
             )}
 
