@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Globe, User, LogOut, ArrowLeft, Menu, X } from 'lucide-react';
+import { getMediaUrl } from '../utils/api';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -108,7 +109,7 @@ const Navbar = () => {
                                 overflow: 'hidden', border: '2px solid var(--glass-border)'
                             }}>
                                 {user?.profilePicture ? (
-                                    <img src={`http://localhost:5000${user.profilePicture}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={getMediaUrl(user.profilePicture)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
                                     user?.username?.charAt(0).toUpperCase()
                                 )}
@@ -171,7 +172,7 @@ const Navbar = () => {
                                     overflow: 'hidden'
                                 }}>
                                     {user?.profilePicture ? (
-                                        <img src={`http://localhost:5000${user.profilePicture}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={getMediaUrl(user.profilePicture)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
                                         user?.username?.charAt(0).toUpperCase()
                                     )}
