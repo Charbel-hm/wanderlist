@@ -6,11 +6,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
+
   fullName: {
     type: String,
     default: ''
@@ -38,13 +34,7 @@ const UserSchema = new mongoose.Schema({
   visitedCountries: {
     type: [String],
     default: []
-  },
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
-  verificationToken: String,
-  verificationTokenExpires: Date
+  }
 });
 
 module.exports = mongoose.model('User', UserSchema);

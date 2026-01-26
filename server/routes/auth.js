@@ -8,17 +8,11 @@ const auth = require('../middleware/auth');
 
 // Register
 router.post('/register', async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, password } = req.body;
 
     // Validation
-    if (!username || !email || !password) {
+    if (!username || !password) {
         return res.status(400).json({ msg: 'Please enter all fields' });
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({ msg: 'Invalid email format' });
     }
 
     // Password validation (min 8 chars, alphanumeric)
@@ -32,10 +26,7 @@ router.post('/register', async (req, res) => {
     }
 
     try {
-        let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ msg: 'User already exists' });
-
-        user = await User.findOne({ username });
+        let user = await User.findOne({ username });
         if (user) return res.status(400).json({ msg: 'Username taken' });
 
         const salt = await bcrypt.genSalt(10);
@@ -43,9 +34,7 @@ router.post('/register', async (req, res) => {
 
         user = new User({
             username,
-            email,
-            password: hashedPassword,
-            isVerified: true // Auto-verified since we removed email check
+            password: hashedPassword
         });
 
         await user.save();
@@ -60,7 +49,7 @@ router.post('/register', async (req, res) => {
         const payload = { user: { id: user._id, username: user.username } };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
             if (err) throw err;
-            res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
+            res.json({ token, user: { id: user._id, username: user.username } });
         });
 
     } catch (err) {
@@ -71,13 +60,11 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ username });
         if (!user) return res.status(400).json({ msg: 'Invalid Credentials' });
-
-        // Removed isVerified check
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
@@ -86,7 +73,7 @@ router.post('/login', async (req, res) => {
 
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
             if (err) throw err;
-            res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
+            res.json({ token, user: { id: user._id, username: user.username } });
         });
 
     } catch (err) {

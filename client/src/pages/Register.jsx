@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
-    const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+    const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -23,11 +23,6 @@ const Register = () => {
         if (!/[a-zA-Z]/.test(formData.password) || !/\d/.test(formData.password)) {
             setLoading(false);
             return setError('Password must contain both letters and numbers');
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            setLoading(false);
-            return setError('Invalid email format');
         }
 
         try {
@@ -73,17 +68,11 @@ const Register = () => {
                             style={{ width: '100%', padding: '0.75rem', color: 'var(--text-main)', background: 'rgba(255,255,255,0.05)' }}
                             onChange={e => setFormData({ ...formData, username: e.target.value })}
                         />
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                            ⚠️ Choose carefully, username cannot be changed later.
+                        </p>
                     </div>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Email</label>
-                        <input
-                            type="email"
-                            required
-                            className="glass-card"
-                            style={{ width: '100%', padding: '0.75rem', color: 'var(--text-main)', background: 'rgba(255,255,255,0.05)' }}
-                            onChange={e => setFormData({ ...formData, email: e.target.value })}
-                        />
-                    </div>
+
                     <div style={{ marginBottom: '2rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Password</label>
                         <input
