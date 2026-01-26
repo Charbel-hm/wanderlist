@@ -8,7 +8,10 @@ const upload = require('../middleware/upload');
 // Get Recent Reviews (Global)
 router.get('/recent', async (req, res) => {
     try {
-        const reviews = await Review.find().sort({ createdAt: -1 }).limit(3);
+        const reviews = await Review.find()
+            .sort({ createdAt: -1 })
+            .limit(3)
+            .populate('userId', 'fullName username profilePicture');
         res.json(reviews);
     } catch (err) {
         console.error(err.message);
@@ -19,7 +22,9 @@ router.get('/recent', async (req, res) => {
 // Get User Reviews
 router.get('/user', auth, async (req, res) => {
     try {
-        const reviews = await Review.find({ userId: req.user.id }).sort({ createdAt: -1 });
+        const reviews = await Review.find({ userId: req.user.id })
+            .sort({ createdAt: -1 })
+            .populate('userId', 'fullName username profilePicture');
         res.json(reviews);
     } catch (err) {
         console.error(err.message);
@@ -30,7 +35,9 @@ router.get('/user', auth, async (req, res) => {
 // Get Reviews for a Country
 router.get('/:countryName', async (req, res) => {
     try {
-        const reviews = await Review.find({ countryName: req.params.countryName }).sort({ createdAt: -1 });
+        const reviews = await Review.find({ countryName: req.params.countryName })
+            .sort({ createdAt: -1 })
+            .populate('userId', 'fullName username profilePicture');
         res.json(reviews);
     } catch (err) {
         console.error(err.message);

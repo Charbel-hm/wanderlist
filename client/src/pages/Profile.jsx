@@ -173,7 +173,7 @@ const Profile = () => {
                     <form onSubmit={handleUpdateProfile} style={{ maxWidth: '400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <input
                             type="text"
-                            placeholder="Full Name"
+                            placeholder="Display Name"
                             value={editForm.fullName}
                             onChange={e => setEditForm({ ...editForm, fullName: e.target.value })}
                             style={{ padding: '0.8rem', borderRadius: '0.5rem', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
@@ -190,8 +190,14 @@ const Profile = () => {
                     </form>
                 ) : (
                     <>
-                        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{user.fullName || user.username}</h1>
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>@{user.username}</p>
+                        {/* Display Name (or fallback to username) */}
+                        <h1 style={{ fontSize: '2rem', marginBottom: '0.25rem', fontWeight: 'bold' }}>
+                            {user.fullName || user.username}
+                        </h1>
+                        {/* Username handle underneath */}
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1rem' }}>
+                            @{user.username}
+                        </p>
                         {user.bio && <p style={{ maxWidth: '600px', margin: '0 auto 1.5rem', lineHeight: '1.6' }}>{user.bio}</p>}
 
                         {/* Stats Grid */}

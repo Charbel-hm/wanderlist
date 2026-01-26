@@ -41,7 +41,12 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                         {review.username.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <p style={{ fontWeight: '600' }}>@{review.username}</p>
+                        <p style={{ fontWeight: '600', marginBottom: '0', lineHeight: '1.2' }}>
+                            {review.userId?.fullName || review.fullName || review.username}
+                        </p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                            @{review.username}
+                        </p>
                         <div style={{ display: 'flex', gap: '2px' }}>
                             {[...Array(5)].map((_, i) => (
                                 <Star
@@ -124,7 +129,7 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                     </span>
                 </div>
 
-                {currentUser && currentUser._id === review.userId && (
+                {currentUser && (currentUser._id === review.userId || currentUser._id === review.userId?._id) && (
                     <button
                         onClick={() => onDelete(review._id)}
                         style={{
