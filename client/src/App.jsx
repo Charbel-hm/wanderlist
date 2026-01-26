@@ -8,7 +8,6 @@ import CountryDetails from './pages/CountryDetails';
 import Wanderlist from './pages/Wanderlist';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import VerifyEmail from './pages/VerifyEmail';
 import About from './pages/About';
 import FlagGame from './pages/FlagGame';
 import Profile from './pages/Profile';
@@ -57,7 +56,6 @@ const AppContent = () => {
           <Route path="/wanderlist" element={<Wanderlist />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/about" element={<About />} />
           <Route path="/game" element={<FlagGame />} />
           <Route path="/profile" element={<Profile />} />
