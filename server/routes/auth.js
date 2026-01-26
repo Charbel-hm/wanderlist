@@ -141,7 +141,18 @@ router.get('/verify/:token', async (req, res) => {
         user.verificationToken = undefined;
         await user.save();
 
-        res.json({ msg: 'Email verified successfully' });
+        // Auto-login: Generate Token
+        const payload = { user: { id: user._id, username: user.username } };
+        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
+            if (err) throw err;
+            // Return token and user data similar to login response
+            res.json({
+                msg: 'Email verified successfully',
+                token,
+                user: { id: user._id, username: user.username, email: user.email }
+            });
+        });
+
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
@@ -163,11 +174,18 @@ router.post('/resend-verification', async (req, res) => {
             await user.save();
         }
 
-        // Send Email (Non-blocking)
+        // Send Email (Blocking for debug clarity)
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            sendVerificationEmail(email, user.verificationToken)
-                .then(() => console.log(`📧 Resent email to ${email}`))
-                .catch(err => console.error("❌ Resend email failed:", err));
+            try {
+                await sendVerificationEmail(email, user.verificationToken);
+                console.log(`📧 Resent email to ${email}`);
+            } catch (emailErr) {
+                console.error("❌ Resend email failed:", emailErr);
+                return res.status(500).json({ msg: 'Email failed: ' + emailErr.message });
+            }
+        } else {
+            console.log('Skipping email: No credentials');
+            return res.status(500).json({ msg: 'Server missing email credentials' });
         }
 
         res.json({ msg: 'Verification email resent! Check your inbox.' });
