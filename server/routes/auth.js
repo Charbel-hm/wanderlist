@@ -22,19 +22,21 @@ const sendVerificationEmail = async (email, token) => {
     console.log(`🔗 LINK: ${url}`);
     console.log('------------------------------------------');
 
-    // Production Email Sending
+    // Production Email Sending (Resend)
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail', // Let Nodemailer handle the details
+            host: 'smtp.resend.com',
+            port: 465,
+            secure: true,
             auth: {
-                user: process.env.EMAIL_USER,
+                user: 'resend',
                 pass: process.env.EMAIL_PASS
             }
         });
 
         await transporter.sendMail({
-            from: `"Wanderlist" <${process.env.EMAIL_USER}>`,
-            to: email,
+            from: 'onboarding@resend.dev', // REQUIRED for Resend Free Tier
+            to: email, // Can only send to your own email on Free Tier
             subject: 'Verify your Wanderlist account',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">

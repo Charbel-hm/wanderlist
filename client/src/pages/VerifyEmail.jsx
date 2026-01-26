@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 const VerifyEmail = () => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
     const [status, setStatus] = useState('verifying'); // verifying, success, error
     const [msg, setMsg] = useState('');
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!token) {
@@ -18,8 +21,23 @@ const VerifyEmail = () => {
         const verify = async () => {
             try {
                 const res = await api.get(`/auth/verify/${token}`);
-                setStatus('success');
-                setMsg(res.data.msg);
+
+                // If backend returns token, auto-login
+                if (res.data.token && res.data.user) {
+                    login(res.data.user, res.data.token);
+                    setStatus('success');
+                    setMsg('Verified! Redirecting to your dashboard...');
+
+                    // Delay slightly for UX so user sees "Verified"
+                    setTimeout(() => {
+                        navigate('/wanderlist');
+                    }, 2000);
+                } else {
+                    // Fallback for old backend behavior
+                    setStatus('success_manual');
+                    setMsg(res.data.msg);
+                }
+
             } catch (err) {
                 setStatus('error');
                 setMsg(err.response?.data?.msg || 'Verification failed');
@@ -27,7 +45,7 @@ const VerifyEmail = () => {
         };
 
         verify();
-    }, [token]);
+    }, [token, login, navigate]);
 
     return (
         <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '100px' }}>
@@ -39,6 +57,13 @@ const VerifyEmail = () => {
                     </>
                 )}
                 {status === 'success' && (
+                    <>
+                        <h2 style={{ color: '#4ade80', marginBottom: '1rem' }}>Success! 🚀</h2>
+                        <p style={{ marginBottom: '2rem' }}>{msg}</p>
+                        <div className="spinner" style={{ margin: '0 auto' }}></div>
+                    </>
+                )}
+                {status === 'success_manual' && ( // Fallback UI
                     <>
                         <h2 style={{ color: '#4ade80', marginBottom: '1rem' }}>Verified!</h2>
                         <p style={{ marginBottom: '2rem' }}>{msg}</p>
