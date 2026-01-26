@@ -194,10 +194,12 @@ const Profile = () => {
                         <h1 style={{ fontSize: '2rem', marginBottom: '0.25rem', fontWeight: 'bold' }}>
                             {user.fullName || user.username}
                         </h1>
-                        {/* Username handle underneath */}
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1rem' }}>
-                            @{user.username}
-                        </p>
+                        {/* Username handle underneath (only if using Custom Name) */}
+                        {user.fullName && (
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1rem' }}>
+                                @{user.username}
+                            </p>
+                        )}
                         {user.bio && <p style={{ maxWidth: '600px', margin: '0 auto 1.5rem', lineHeight: '1.6' }}>{user.bio}</p>}
 
                         {/* Stats Grid */}

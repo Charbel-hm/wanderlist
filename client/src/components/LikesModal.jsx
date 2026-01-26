@@ -83,7 +83,9 @@ const LikesModal = ({ isOpen, onClose, likedBy }) => {
                                 </div>
                                 <div>
                                     <p style={{ fontWeight: '600', margin: 0 }}>{user.fullName || user.username}</p>
-                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>@{user.username}</p>
+                                    {user.fullName && (
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>@{user.username}</p>
+                                    )}
                                 </div>
                             </div>
                         ))

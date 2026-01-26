@@ -44,9 +44,11 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                         <p style={{ fontWeight: '600', marginBottom: '0', lineHeight: '1.2' }}>
                             {review.userId?.fullName || review.fullName || review.username}
                         </p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                            @{review.username}
-                        </p>
+                        {(review.userId?.fullName || review.fullName) && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                                @{review.username}
+                            </p>
+                        )}
                         <div style={{ display: 'flex', gap: '2px' }}>
                             {[...Array(5)].map((_, i) => (
                                 <Star
