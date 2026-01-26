@@ -36,6 +36,7 @@ router.get('/video/:countryName', async (req, res) => {
                 part: 'snippet',
                 q: searchQuery,
                 type: 'video',
+                videoEmbeddable: 'true',
                 videoDuration: 'medium', // 4-20 minutes
                 videoDefinition: 'high',
                 order: 'relevance',
