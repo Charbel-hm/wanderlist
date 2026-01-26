@@ -25,18 +25,11 @@ const sendVerificationEmail = async (email, token) => {
     // Production Email Sending
     try {
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587, // Try 587 (STARTTLS) instead of 465
-            secure: false, // Must be false for port 587
+            service: 'gmail', // Let Nodemailer handle the details
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
-            },
-            tls: {
-                rejectUnauthorized: false // Helps if certificate chain issues exist
-            },
-            // Force IPv4 to avoid timeouts on some cloud providers
-            family: 4
+            }
         });
 
         await transporter.sendMail({
