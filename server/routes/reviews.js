@@ -69,6 +69,7 @@ router.post('/', auth, (req, res, next) => {
         });
 
         const review = await newReview.save();
+        await review.populate('userId', 'fullName username profilePicture');
 
         // Auto-mark as visited
         const user = await User.findById(req.user.id);
