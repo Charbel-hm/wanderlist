@@ -71,6 +71,7 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/youtube', require('./routes/youtube'));
 app.use('/api/game', require('./routes/game'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/media', require('./routes/media'));
 
 // Catch-all info for unmatched routes starting with /api
 // Catch-all info for unmatched routes starting with /api

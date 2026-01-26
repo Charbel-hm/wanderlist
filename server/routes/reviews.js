@@ -160,6 +160,7 @@ router.put('/:id/like', auth, async (req, res) => {
         }
 
         await review.save();
+        await review.populate('userId', 'fullName username profilePicture'); // Ensure author details are returned
         res.json(review);
     } catch (err) {
         console.error(err.message);

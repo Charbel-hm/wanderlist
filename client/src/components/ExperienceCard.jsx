@@ -115,8 +115,8 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                     >
                         <Heart
                             size={16}
-                            fill={review.likedBy?.includes(currentUser?._id) ? "#ef4444" : "none"}
-                            color={review.likedBy?.includes(currentUser?._id) ? "#ef4444" : "gold"}
+                            fill={review.likedBy?.some(id => id.toString() === currentUser?._id?.toString()) ? "#ef4444" : "none"}
+                            color={review.likedBy?.some(id => id.toString() === currentUser?._id?.toString()) ? "#ef4444" : "gold"}
                         />
                     </button>
                     <span

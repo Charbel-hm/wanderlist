@@ -47,7 +47,7 @@ router.post('/register', async (req, res) => {
 
         // Auto-login: Generate Token
         const payload = { user: { id: user._id, username: user.username } };
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
+        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10y' }, (err, token) => {
             if (err) throw err;
             res.json({ token, user: { id: user._id, username: user.username } });
         });
@@ -71,7 +71,7 @@ router.post('/login', async (req, res) => {
 
         const payload = { user: { id: user._id, username: user.username } };
 
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
+        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10y' }, (err, token) => {
             if (err) throw err;
             res.json({ token, user: { id: user._id, username: user.username } });
         });
