@@ -69,7 +69,7 @@ const Register = () => {
                             onChange={e => setFormData({ ...formData, username: e.target.value })}
                         />
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                            ⚠️ Choose carefully, username cannot be changed later.
+                            Choose carefully, username cannot be changed later.
                         </p>
                     </div>
 
