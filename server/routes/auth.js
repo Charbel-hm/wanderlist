@@ -8,7 +8,8 @@ const auth = require('../middleware/auth');
 
 // Register
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer'); // SMTP is blocked on Render
+const { Resend } = require('resend'); // Use HTTP API instead
 
 // Helper to send email
 const sendVerificationEmail = async (email, token) => {
@@ -22,21 +23,14 @@ const sendVerificationEmail = async (email, token) => {
     console.log(`🔗 LINK: ${url}`);
     console.log('------------------------------------------');
 
-    // Production Email Sending (Resend)
-    try {
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.resend.com',
-            port: 465,
-            secure: true,
-            auth: {
-                user: 'resend',
-                pass: process.env.EMAIL_PASS
-            }
-        });
+    // Production Email Sending (Resend HTTP API)
+    // We use EMAIL_PASS as the API Key to avoid asking user to change env vars again
+    const resend = new Resend(process.env.EMAIL_PASS);
 
-        await transporter.sendMail({
-            from: 'onboarding@resend.dev', // REQUIRED for Resend Free Tier
-            to: email, // Can only send to your own email on Free Tier
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'Wanderlist <onboarding@resend.dev>', // Verified domain or default
+            to: [email], // Must be the registered email on free tier
             subject: 'Verify your Wanderlist account',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -47,7 +41,13 @@ const sendVerificationEmail = async (email, token) => {
                 </div>
             `
         });
-        console.log(`📧 Email sent to ${email}`);
+
+        if (error) {
+            console.error('❌ Resend API Error:', error);
+            throw new Error(error.message);
+        }
+
+        console.log(`📧 Email sent to ${email}`, data);
     } catch (emailErr) {
         // Throw error so the caller knows it failed
         throw emailErr;
