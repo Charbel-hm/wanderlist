@@ -27,8 +27,10 @@ router.get('/:filename', async (req, res) => {
         }
     }
 
+    console.log(`[Media] Request for: ${req.params.filename}`);
     try {
         const file = await gridfsBucket.find({ filename: req.params.filename }).toArray();
+        console.log(`[Media] GridFS Search Result:`, file.length > 0 ? 'Found' : 'Not Found');
 
         if (file && file.length > 0) {
             // Found in GridFS
