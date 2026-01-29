@@ -125,7 +125,7 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                             fontSize: '0.9rem',
                             color: 'var(--text-muted)',
                             cursor: review.likes > 0 ? 'pointer' : 'default',
-                            textDecoration: review.likes > 0 ? 'underline' : 'none'
+                            textDecoration: 'none'
                         }}
                     >
                         {review.likes} Likes
