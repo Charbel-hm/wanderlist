@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Direct connection to Render backend to bypass Vercel proxy issues
-// const API_URL = 'https://wanderlist-kdgg.onrender.com';
-const API_URL = 'http://localhost:5000'; // Local Development
+const API_URL = import.meta.env.MODE === 'production'
+    ? 'https://wanderlist-kdgg.onrender.com'
+    : 'http://localhost:5000';
 
 const api = axios.create({
     baseURL: `${API_URL}/api`,
