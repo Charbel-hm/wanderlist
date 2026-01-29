@@ -15,11 +15,12 @@ const api = axios.create({
 export const getMediaUrl = (path) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    if (path.startsWith('/uploads')) {
-        const filename = path.replace('/uploads/', '');
-        return `${API_URL}/api/media/${filename}`;
-    }
-    return path;
+
+    // Clean path if it contains /uploads/
+    const filename = path.replace('/uploads/', '').replace('uploads/', '');
+
+    // Assume it's a media file served by API
+    return `${API_URL}/api/media/${filename}`;
 };
 
 // Add a request interceptor to include the auth token
