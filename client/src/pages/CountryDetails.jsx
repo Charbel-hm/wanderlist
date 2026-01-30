@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import api from '../utils/api';
+import api, { getMediaUrl } from '../utils/api';
 import ExperienceCard from '../components/ExperienceCard';
 import { MapPin, Users, DollarSign, Languages, Star, Plus, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Grid } from 'lucide-react';
 import { formatPopulation } from '../utils/formatters';
@@ -265,11 +265,10 @@ const CountryDetails = () => {
                 formData.append('media', file);
             });
 
-            // Direct upload to Render
-            const res = await axios.post('https://wanderlist-kdgg.onrender.com/api/reviews', formData, {
+            // Upload using configured api instance
+            const res = await api.post('/reviews', formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'x-auth-token': token
+                    'Content-Type': 'multipart/form-data'
                 }
             });
 
@@ -979,16 +978,16 @@ const CountryDetails = () => {
                                 </button>
                             )}
 
-                            {lightbox.media[lightbox.index].match(/\.(mp4|webm)$/i) ? (
+                            {lightbox.media[lightbox.index].match(/\.(mp4|webm|mov)$/i) ? (
                                 <video
-                                    src={`http://localhost:5000${lightbox.media[lightbox.index]}`}
+                                    src={getMediaUrl(lightbox.media[lightbox.index])}
                                     controls
                                     autoPlay
                                     style={{ maxHeight: '80vh', maxWidth: '100%', borderRadius: '0.5rem', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}
                                 />
                             ) : (
                                 <img
-                                    src={`http://localhost:5000${lightbox.media[lightbox.index]}`}
+                                    src={getMediaUrl(lightbox.media[lightbox.index])}
                                     alt="Review media"
                                     style={{ maxHeight: '80vh', maxWidth: '100%', borderRadius: '0.5rem', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}
                                 />

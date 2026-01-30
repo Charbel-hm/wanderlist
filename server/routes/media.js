@@ -1,56 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
-const fs = require('fs');
-const path = require('path');
 
 let gridfsBucket;
 
+// Initialize GridFS Bucket
 const conn = mongoose.connection;
 conn.once('open', () => {
+    console.log('Media Route: MongoDB Connection Open, Initializing GridFSBucket');
     gridfsBucket = new mongoose.mongo.GridFSBucket(conn.db, {
         bucketName: 'uploads'
     });
-    console.log('GridFS Bucket Initialized');
 });
 
-// serve file
+// Since connection might already be open if this file is required after connection
+if (conn.readyState === 1) {
+    console.log('Media Route: MongoDB Connection Already Open, Initializing GridFSBucket');
+    gridfsBucket = new mongoose.mongo.GridFSBucket(conn.db, {
+        bucketName: 'uploads'
+    });
+}
+
+// Get Image/Video
 router.get('/:filename', async (req, res) => {
     if (!gridfsBucket) {
-        // Fallback try-init if connection wasn't ready at startup (unlikely but safe)
-        if (mongoose.connection.readyState === 1) {
-            gridfsBucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-                bucketName: 'uploads'
-            });
-        } else {
-            return res.status(500).json({ err: 'Database not initialized' });
-        }
+        return res.status(500).json({ err: 'Database connection not ready' });
     }
 
-    console.log(`[Media] Request for: ${req.params.filename}`);
     try {
-        const file = await gridfsBucket.find({ filename: req.params.filename }).toArray();
-        console.log(`[Media] GridFS Search Result:`, file.length > 0 ? 'Found' : 'Not Found');
+        const file = await conn.db.collection('uploads.files').findOne({ filename: req.params.filename });
 
-        if (file && file.length > 0) {
-            // Found in GridFS
-            if (file[0].contentType) {
-                res.set('Content-Type', file[0].contentType);
-            }
+        if (!file) {
+            return res.status(404).json({ err: 'No file found' });
+        }
+
+        // Check if image or video
+        if (file.contentType === 'image/jpeg' ||
+            file.contentType === 'image/png' ||
+            file.contentType === 'video/mp4' ||
+            file.contentType === 'video/webm' ||
+            file.contentType === 'image/gif') {
+
+            // Set headers
+            res.set('Content-Type', file.contentType);
+            res.set('Content-Length', file.length);
+            res.set('Content-Disposition', 'inline'); // Ensure browser displays it
+
+            // Stream response
             const readStream = gridfsBucket.openDownloadStreamByName(req.params.filename);
             readStream.pipe(res);
         } else {
-            // Not in GridFS, try local filesystem
-            const filePath = path.join(__dirname, '..', 'uploads', req.params.filename);
-            if (fs.existsSync(filePath)) {
-                res.sendFile(filePath);
-            } else {
-                return res.status(404).json({ err: 'No file exists' });
-            }
+            res.status(404).json({ err: 'Not an image or video' });
         }
     } catch (err) {
         console.error(err);
-        res.status(404).json({ err: 'Error retrieving file' });
+        res.status(500).json({ err: 'Server Error' });
     }
 });
 
