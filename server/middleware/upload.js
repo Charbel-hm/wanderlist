@@ -33,7 +33,7 @@ const storage = new GridFsStorage({
     url: mongoURI,
     file: (req, file) => {
         return new Promise((resolve, reject) => {
-            console.log("Processing file upload for GridFS:", file.originalName);
+            console.log("Start GridFS Storage for:", file.originalname);
             crypto.randomBytes(16, (err, buf) => {
                 if (err) {
                     console.error("Crypto error:", err);
@@ -44,7 +44,7 @@ const storage = new GridFsStorage({
                     filename: filename,
                     bucketName: 'uploads' // Collection name match
                 };
-                console.log("Generated filename for GridFS:", filename);
+                console.log("Generated filename, starting stream:", filename);
                 resolve(fileInfo);
             });
         });
@@ -53,8 +53,9 @@ const storage = new GridFsStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 50000000 }, // 50MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB Limit for stability
     fileFilter: function (req, file, cb) {
+        console.log("Filtering file:", file.originalname);
         checkFileType(file, cb);
     }
 });
