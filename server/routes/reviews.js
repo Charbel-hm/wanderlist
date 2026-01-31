@@ -4,6 +4,34 @@ const Review = require('../models/Review');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const upload = require('../middleware/upload');
+const mongoose = require('mongoose'); // Added
+const crypto = require('crypto'); // Added
+const path = require('path'); // Added
+const { Readable } = require('stream'); // Added
+
+// Helper to stream buffer to GridFS
+const streamUpload = (buffer, originalName) => {
+    return new Promise((resolve, reject) => {
+        crypto.randomBytes(16, (err, buf) => {
+            if (err) return reject(err);
+            const filename = buf.toString('hex') + path.extname(originalName);
+            const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+            const uploadStream = bucket.openUploadStream(filename, {
+                contentType: 'application/octet-stream' // Or detect mime type if needed
+            });
+
+            const readStream = new Readable();
+            readStream.push(buffer);
+            readStream.push(null);
+
+            readStream.pipe(uploadStream)
+                .on('error', reject)
+                .on('finish', () => {
+                    resolve(`/uploads/${filename}`);
+                });
+        });
+    });
+};
 
 // Get Recent Reviews (Global)
 router.get('/recent', async (req, res) => {
@@ -46,18 +74,12 @@ router.get('/:countryName', async (req, res) => {
 });
 
 // Add Review
-router.post('/', auth, (req, res, next) => {
-    upload.array('media', 5)(req, res, (err) => {
-        if (err) {
-            return res.status(400).json({ msg: err.message || err });
-        }
-        next();
-    });
-}, async (req, res) => {
+router.post('/', auth, upload.array('media', 5), async (req, res) => {
     const { countryName, rating, comment } = req.body;
     try {
-        const media = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
-
+        // Handle manual Streaming to GridFS
+        const mediaPromises = req.files ? req.files.map(file => streamUpload(file.buffer, file.originalname)) : [];
+        const media = await Promise.all(mediaPromises);
 
         const newReview = new Review({
             countryName,
@@ -73,7 +95,7 @@ router.post('/', auth, (req, res, next) => {
 
         // Auto-mark as visited
         const user = await User.findById(req.user.id);
-        if (!user.visitedCountries.includes(countryName)) {
+        if (user && !user.visitedCountries.includes(countryName)) {
             user.visitedCountries.push(countryName);
             await user.save();
         }
@@ -86,14 +108,7 @@ router.post('/', auth, (req, res, next) => {
 });
 
 // Update Review
-router.put('/:id', auth, (req, res, next) => {
-    upload.array('media', 5)(req, res, (err) => {
-        if (err) {
-            return res.status(400).json({ msg: err.message || err });
-        }
-        next();
-    });
-}, async (req, res) => {
+router.put('/:id', auth, upload.array('media', 5), async (req, res) => {
     const { rating, comment } = req.body;
     try {
         let review = await Review.findById(req.params.id);
@@ -105,11 +120,11 @@ router.put('/:id', auth, (req, res, next) => {
         }
 
         review.rating = rating || review.rating;
-        review.rating = rating || review.rating;
         review.comment = comment || review.comment;
 
         if (req.files && req.files.length > 0) {
-            const newMedia = req.files.map(file => `/uploads/${file.filename}`);
+            const mediaPromises = req.files.map(file => streamUpload(file.buffer, file.originalname));
+            const newMedia = await Promise.all(mediaPromises);
             review.media = [...review.media, ...newMedia];
         }
 
