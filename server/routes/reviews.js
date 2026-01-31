@@ -10,7 +10,8 @@ const path = require('path');
 const { Readable } = require('stream');
 
 // Helper to stream buffer to GridFS
-const streamUpload = async (buffer, originalName) => {
+// Helper to stream buffer to GridFS
+const streamUpload = async (buffer, originalName, mimetype) => {
     // Ensure DB is connected before starting stream (Critical for Vercel/Serverless)
     if (mongoose.connection.readyState !== 1) {
         console.log("[StreamUpload] Waiting for MongoDB connection...");
@@ -34,7 +35,7 @@ const streamUpload = async (buffer, originalName) => {
             const filename = buf.toString('hex') + path.extname(originalName);
             const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
             const uploadStream = bucket.openUploadStream(filename, {
-                contentType: 'application/octet-stream'
+                contentType: mimetype || 'application/octet-stream'
             });
 
             const readStream = new Readable();
@@ -95,7 +96,7 @@ router.post('/', auth, upload.array('media', 5), async (req, res) => {
     const { countryName, rating, comment } = req.body;
     try {
         // Handle manual Streaming to GridFS
-        const mediaPromises = req.files ? req.files.map(file => streamUpload(file.buffer, file.originalname)) : [];
+        const mediaPromises = req.files ? req.files.map(file => streamUpload(file.buffer, file.originalname, file.mimetype)) : [];
         const media = await Promise.all(mediaPromises);
 
         const newReview = new Review({
@@ -140,7 +141,7 @@ router.put('/:id', auth, upload.array('media', 5), async (req, res) => {
         review.comment = comment || review.comment;
 
         if (req.files && req.files.length > 0) {
-            const mediaPromises = req.files.map(file => streamUpload(file.buffer, file.originalname));
+            const mediaPromises = req.files.map(file => streamUpload(file.buffer, file.originalname, file.mimetype));
             const newMedia = await Promise.all(mediaPromises);
             review.media = [...review.media, ...newMedia];
         }

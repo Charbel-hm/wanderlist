@@ -5,6 +5,49 @@ const Wanderlist = require('../models/Wanderlist');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
+const mongoose = require('mongoose');
+const crypto = require('crypto');
+const path = require('path');
+const { Readable } = require('stream');
+
+// Helper to stream buffer to GridFS
+const streamUpload = async (buffer, originalName, mimetype) => {
+    // Ensure DB is connected before starting stream
+    if (mongoose.connection.readyState !== 1) {
+        console.log("[StreamUpload] Waiting for MongoDB connection...");
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("DB Connection Timeout")), 10000);
+            mongoose.connection.once('open', () => {
+                clearTimeout(timeout);
+                resolve();
+            });
+            if (mongoose.connection.readyState === 0) {
+                mongoose.connect(process.env.MONGO_URI).catch(reject);
+            }
+        });
+    }
+
+    return new Promise((resolve, reject) => {
+        crypto.randomBytes(16, (err, buf) => {
+            if (err) return reject(err);
+            const filename = buf.toString('hex') + path.extname(originalName);
+            const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+            const uploadStream = bucket.openUploadStream(filename, {
+                contentType: mimetype || 'application/octet-stream'
+            });
+
+            const readStream = new Readable();
+            readStream.push(buffer);
+            readStream.push(null);
+
+            readStream.pipe(uploadStream)
+                .on('error', reject)
+                .on('finish', () => {
+                    resolve(`/uploads/${filename}`);
+                });
+        });
+    });
+};
 
 // Register
 router.post('/register', async (req, res) => {
@@ -106,7 +149,9 @@ router.put('/updatedetails', [auth, upload.single('profilePicture')], async (req
         if (fullName) user.fullName = fullName;
         if (bio) user.bio = bio;
         if (req.file) {
-            user.profilePicture = `/uploads/${req.file.filename}`;
+            // Manual GridFS Stream
+            const filename = await streamUpload(req.file.buffer, req.file.originalname, req.file.mimetype);
+            user.profilePicture = filename;
         }
 
         await user.save();
