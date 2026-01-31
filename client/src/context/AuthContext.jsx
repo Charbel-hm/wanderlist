@@ -20,23 +20,9 @@ export const AuthProvider = ({ children }) => {
                     localStorage.setItem('user', JSON.stringify(res.data));
                 } catch (err) {
                     console.error("Auth verification failed", err);
-                    // Only log out if it's strictly an authentication error (401)
-                    if (err.response && err.response.status === 401) {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        setUser(null);
-                    } else {
-                        // For other errors (network, 500, etc), keep the user logged in if possible
-                        // Try to load cached user data
-                        const savedUser = localStorage.getItem('user');
-                        if (savedUser) {
-                            try {
-                                setUser(JSON.parse(savedUser));
-                            } catch (e) {
-                                console.error("Failed to parse saved user", e);
-                            }
-                        }
-                    }
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setUser(null);
                 }
             }
             setLoading(false);

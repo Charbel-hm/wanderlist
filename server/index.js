@@ -97,18 +97,4 @@ if (require.main === module && !process.env.VERCEL) {
     app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 }
 
-// Global Error Handlers to prevent crash
-process.on('uncaughtException', (err) => {
-    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-    console.error(err.name, err.message);
-    console.error(err.stack);
-    // process.exit(1); // Don't exit immediately in dev to allow seeing the error, or use a restart policy
-});
-
-process.on('unhandledRejection', (err) => {
-    console.error('UNHANDLED REJECTION! 💥');
-    console.error(err.name, err.message);
-    // server.close(() => process.exit(1));
-});
-
 module.exports = app;

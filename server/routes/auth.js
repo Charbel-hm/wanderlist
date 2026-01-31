@@ -5,34 +5,6 @@ const Wanderlist = require('../models/Wanderlist');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
-const mongoose = require('mongoose');
-const crypto = require('crypto');
-const path = require('path');
-const { Readable } = require('stream');
-
-// Helper to stream buffer to GridFS
-const streamUpload = (buffer, originalName) => {
-    return new Promise((resolve, reject) => {
-        crypto.randomBytes(16, (err, buf) => {
-            if (err) return reject(err);
-            const filename = buf.toString('hex') + path.extname(originalName);
-            const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
-            const uploadStream = bucket.openUploadStream(filename, {
-                contentType: 'application/octet-stream'
-            });
-
-            const readStream = new Readable();
-            readStream.push(buffer);
-            readStream.push(null);
-
-            readStream.pipe(uploadStream)
-                .on('error', reject)
-                .on('finish', () => {
-                    resolve(`/uploads/${filename}`);
-                });
-        });
-    });
-};
 
 // Register
 router.post('/register', async (req, res) => {
@@ -133,11 +105,8 @@ router.put('/updatedetails', [auth, upload.single('profilePicture')], async (req
 
         if (fullName) user.fullName = fullName;
         if (bio) user.bio = bio;
-
         if (req.file) {
-            // Manual GridFS Stream
-            const filename = await streamUpload(req.file.buffer, req.file.originalname);
-            user.profilePicture = filename;
+            user.profilePicture = `/uploads/${req.file.filename}`;
         }
 
         await user.save();
