@@ -89,8 +89,12 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                                 key={idx}
                                 src={fullPath}
                                 alt="Review media"
-                                style={{ height: '150px', borderRadius: '0.5rem', cursor: 'pointer' }}
+                                style={{ height: '150px', borderRadius: '0.5rem', cursor: 'pointer', objectFit: 'cover' }}
                                 onClick={() => onImageClick && onImageClick(review.media, idx)}
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'https://placehold.co/150x150?text=Image+Error'; // Fallback
+                                }}
                             />
                         );
                     })}

@@ -23,7 +23,9 @@ if (conn.readyState === 1) {
 
 // Get Image/Video
 router.get('/:filename', async (req, res) => {
+    console.log(`[Media] Request for: ${req.params.filename}`);
     if (!gridfsBucket) {
+        console.error('[Media] GridFS Bucket not initialized!');
         return res.status(500).json({ err: 'Database connection not ready' });
     }
 
@@ -31,6 +33,7 @@ router.get('/:filename', async (req, res) => {
         const file = await conn.db.collection('uploads.files').findOne({ filename: req.params.filename });
 
         if (!file) {
+            console.warn(`[Media] File not found in GridFS: ${req.params.filename}`);
             return res.status(404).json({ err: 'No file found' });
         }
 
@@ -48,12 +51,17 @@ router.get('/:filename', async (req, res) => {
 
             // Stream response
             const readStream = gridfsBucket.openDownloadStreamByName(req.params.filename);
+            readStream.on('error', (streamErr) => {
+                console.error('[Media] Stream Error:', streamErr);
+                res.status(500).end();
+            });
             readStream.pipe(res);
         } else {
+            console.warn(`[Media] Invalid content type: ${file.contentType}`);
             res.status(404).json({ err: 'Not an image or video' });
         }
     } catch (err) {
-        console.error(err);
+        console.error('[Media] Server Error:', err);
         res.status(500).json({ err: 'Server Error' });
     }
 });

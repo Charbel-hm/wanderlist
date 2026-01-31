@@ -31,20 +31,21 @@ function checkFileType(file, cb) {
 // Create storage engine
 const storage = new GridFsStorage({
     url: mongoURI,
+    options: { useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
-            console.log("Start GridFS Storage for:", file.originalname);
+            console.log(`[Upload] Processing file: ${file.originalname}`);
             crypto.randomBytes(16, (err, buf) => {
                 if (err) {
-                    console.error("Crypto error:", err);
+                    console.error("[Upload] Crypto error:", err);
                     return reject(err);
                 }
                 const filename = buf.toString('hex') + path.extname(file.originalname);
                 const fileInfo = {
                     filename: filename,
-                    bucketName: 'uploads' // Collection name match
+                    bucketName: 'uploads'
                 };
-                console.log("Generated filename, starting stream:", filename);
+                console.log(`[Upload] Generated filename: ${filename}`);
                 resolve(fileInfo);
             });
         });
