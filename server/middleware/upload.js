@@ -28,10 +28,11 @@ function checkFileType(file, cb) {
     }
 }
 
+const mongoose = require('mongoose');
+
 // Create storage engine
 const storage = new GridFsStorage({
-    url: mongoURI,
-    options: { useUnifiedTopology: true },
+    db: mongoose.connection,
     file: (req, file) => {
         return new Promise((resolve, reject) => {
             console.log(`[Upload] Processing file: ${file.originalname}`);
