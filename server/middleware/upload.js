@@ -1,16 +1,6 @@
 const multer = require('multer');
-const { GridFsStorage } = require('multer-gridfs-storage');
-const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-
-const mongoURI = process.env.MONGO_URI;
-
-if (!mongoURI) {
-    console.error("CRITICAL: MONGO_URI is missing in upload.js!");
-} else {
-    console.log("Upload.js initialized with MONGO_URI:", mongoURI.substring(0, 20) + "...");
-}
 
 // Check File Type
 function checkFileType(file, cb) {
@@ -28,34 +18,13 @@ function checkFileType(file, cb) {
     }
 }
 
-// Create storage engine
-const storage = new GridFsStorage({
-    url: mongoURI,
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            console.log("Start GridFS Storage for:", file.originalname);
-            crypto.randomBytes(16, (err, buf) => {
-                if (err) {
-                    console.error("Crypto error:", err);
-                    return reject(err);
-                }
-                const filename = buf.toString('hex') + path.extname(file.originalname);
-                const fileInfo = {
-                    filename: filename,
-                    bucketName: 'uploads' // Collection name match
-                };
-                console.log("Generated filename, starting stream:", filename);
-                resolve(fileInfo);
-            });
-        });
-    }
-});
+// Use Memory Storage - we will stream to GridFS manually in the controller
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB Limit for stability
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB Limit
     fileFilter: function (req, file, cb) {
-        console.log("Filtering file:", file.originalname);
         checkFileType(file, cb);
     }
 });
