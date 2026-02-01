@@ -25,7 +25,11 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
     return (
         <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <Link to={`/profile/${review.username}`} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+                <Link
+                    to={`/profile/${review.username}`}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
+                >
                     <div style={{
                         width: '40px',
                         height: '40px',
@@ -88,6 +92,7 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                                 src={fullPath}
                                 controls
                                 style={{ height: '150px', borderRadius: '0.5rem' }}
+                                onClick={(e) => e.stopPropagation()}
                             />
                         ) : (
                             <img
@@ -95,7 +100,10 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                                 src={fullPath}
                                 alt="Review media"
                                 style={{ height: '150px', borderRadius: '0.5rem', cursor: 'pointer', objectFit: 'cover' }}
-                                onClick={() => onImageClick && onImageClick(review.media, idx)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onImageClick && onImageClick(review.media, idx);
+                                }}
                                 onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.src = 'https://placehold.co/150x150?text=Image+Error'; // Fallback
@@ -109,7 +117,10 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <button
-                        onClick={() => onLike && onLike(review._id)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onLike && onLike(review._id);
+                        }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',

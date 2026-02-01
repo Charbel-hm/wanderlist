@@ -766,14 +766,15 @@ const CountryDetails = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {reviews.length > 0 ? (
                         reviews.map(review => (
-                            <ExperienceCard
-                                key={review._id}
-                                review={review}
-                                currentUser={currentUser}
-                                onDelete={handleDeleteReview}
-                                onImageClick={openLightbox}
-                                onLike={handleLikeReview}
-                            />
+                            <div key={review._id} id={`post-${review._id}`}>
+                                <ExperienceCard
+                                    review={review}
+                                    currentUser={currentUser}
+                                    onDelete={handleDeleteReview}
+                                    onImageClick={openLightbox}
+                                    onLike={handleLikeReview}
+                                />
+                            </div>
                         ))
                     ) : (
                         <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No posts yet. Be the first!</p>

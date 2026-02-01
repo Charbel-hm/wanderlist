@@ -114,6 +114,33 @@ const Home = () => {
         }
     };
 
+    const [lightbox, setLightbox] = useState({ isOpen: false, media: [], index: 0 });
+
+    const handleLike = async (reviewId) => {
+        if (!user) {
+            // Optional: prompt login
+            return;
+        }
+        try {
+            const res = await api.post(`/posts/${reviewId}/like`);
+            const updateState = (prev) => prev.map(r =>
+                r._id === reviewId ? { ...r, likes: res.data.likes, likedBy: res.data.likedBy } : r
+            );
+            setTopReviews(updateState);
+            setRecentReviews(updateState);
+        } catch (err) {
+            console.error("Failed to like post", err);
+        }
+    };
+
+    const handleImageClick = (media, index) => {
+        setLightbox({ isOpen: true, media, index });
+    };
+
+    const closeLightbox = () => {
+        setLightbox({ ...lightbox, isOpen: false });
+    };
+
     return (
         <div style={{ paddingTop: '80px', minHeight: '100vh', overflowX: 'hidden', position: 'relative' }}>
             {/* GLOBAL BACKGROUND */}
@@ -405,8 +432,17 @@ const Home = () => {
                             gap: '2rem'
                         }}>
                             {topReviews.map(review => (
-                                <div key={review._id} onClick={() => navigate(`/countries/${review.countryName}`)} style={{ cursor: 'pointer' }}>
-                                    <ExperienceCard review={review} />
+                                <div
+                                    key={review._id}
+                                    onClick={() => navigate(`/countries/${review.countryName}#post-${review._id}`)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <ExperienceCard
+                                        review={review}
+                                        currentUser={user}
+                                        onLike={handleLike}
+                                        onImageClick={handleImageClick}
+                                    />
                                     <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--primary)', textAlign: 'right' }}>
                                         — in {review.countryName}
                                     </p>
@@ -433,8 +469,17 @@ const Home = () => {
                             gap: '2rem'
                         }}>
                             {recentReviews.map(review => (
-                                <div key={review._id} onClick={() => navigate(`/countries/${review.countryName}`)} style={{ cursor: 'pointer' }}>
-                                    <ExperienceCard review={review} />
+                                <div
+                                    key={review._id}
+                                    onClick={() => navigate(`/countries/${review.countryName}#post-${review._id}`)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <ExperienceCard
+                                        review={review}
+                                        currentUser={user}
+                                        onLike={handleLike}
+                                        onImageClick={handleImageClick}
+                                    />
                                     <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--primary)', textAlign: 'right' }}>
                                         — in {review.countryName}
                                     </p>
@@ -556,6 +601,45 @@ const Home = () => {
                     }
                 }
             `}</style>
+            {/* Lightbox Modal */}
+            {lightbox.isOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(0,0,0,0.9)',
+                    zIndex: 1000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }} onClick={closeLightbox}>
+                    <button
+                        onClick={closeLightbox}
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'white',
+                            fontSize: '2rem',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        ×
+                    </button>
+                    {lightbox.media && lightbox.media.length > 0 && (
+                        <img
+                            src={getMediaUrl(lightbox.media[lightbox.index])}
+                            alt="Full size"
+                            style={{ maxHeight: '90vh', maxWidth: '90vw', objectFit: 'contain' }}
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    )}
+                </div>
+            )}
         </div >
     );
 };
