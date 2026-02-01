@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import api, { getMediaUrl } from '../utils/api';
 import ExperienceCard from '../components/ExperienceCard';
@@ -12,6 +12,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 
 const CountryDetails = () => {
     const { name } = useParams();
+    const location = useLocation();
     const { showNotification } = useNotification();
     const [country, setCountry] = useState(null);
     const [reviews, setReviews] = useState([]);
@@ -118,6 +119,25 @@ const CountryDetails = () => {
         };
         fetchData();
     }, [name, token]);
+
+    // Handle Hash Scrolling
+    useEffect(() => {
+        if (location.hash && reviews.length > 0 && !loading) {
+            const id = location.hash.replace('#', '');
+            const element = document.getElementById(id);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Optional: Add a highlight effect
+                    element.style.transition = 'background 0.5s';
+                    element.style.background = 'rgba(52, 211, 153, 0.2)';
+                    setTimeout(() => {
+                        element.style.background = 'transparent';
+                    }, 2000);
+                }, 500); // Small delay to ensure render
+            }
+        }
+    }, [location.hash, reviews, loading]);
 
 
     // Scroll helper
