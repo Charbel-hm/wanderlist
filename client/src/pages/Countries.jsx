@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import CountryCard from '../components/CountryCard';
 import LoadingScreen from '../components/LoadingScreen';
-import { Search, ChevronDown, Globe, ArrowUpDown, RefreshCw } from 'lucide-react';
+import { Search, ChevronDown, Globe, ArrowUpDown, RefreshCw, ArrowUp } from 'lucide-react';
 
 const Countries = () => {
     const location = useLocation();
@@ -15,7 +15,24 @@ const Countries = () => {
     const [region, setRegion] = useState(location.state?.region || '');
     const [sort, setSort] = useState(localStorage.getItem('countries_sort') || 'alphabetical');
     const [wanderlist, setWanderlist] = useState([]);
+    const [showScrollTop, setShowScrollTop] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
     const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const offset = window.scrollY;
+            setShowScrollTop(offset > 300);
+            setIsScrolled(offset > 150);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const fetchCountries = async () => {
         setLoading(true);
@@ -111,103 +128,145 @@ const Countries = () => {
         });
 
     return (
-        <div className="container" style={{ paddingTop: '100px', paddingBottom: '4rem' }}>
+        <div className="container" style={{ paddingTop: '140px', paddingBottom: '4rem', position: 'relative' }}>
+            {/* Background Glows for Depth */}
+            <div style={{
+                position: 'absolute',
+                top: '-10%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '60vw',
+                height: '400px',
+                background: 'radial-gradient(circle, rgba(52, 211, 153, 0.15) 0%, rgba(15, 41, 30, 0) 70%)',
+                zIndex: -1,
+                pointerEvents: 'none'
+            }}></div>
+            <div className="animate-blob" style={{
+                position: 'absolute',
+                top: '50px',
+                right: '10%',
+                width: '250px',
+                height: '250px',
+                background: 'var(--secondary)',
+                borderRadius: '50%',
+                filter: 'blur(80px)',
+                opacity: 0.15,
+                zIndex: -1,
+                pointerEvents: 'none'
+            }}></div>
+
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
-                marginBottom: '4rem',
+                marginBottom: '2rem',
                 maxWidth: '800px',
-                margin: '0 auto 4rem'
+                margin: '0 auto 2rem'
             }}>
-                <h1 className="title" style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>Explore the World</h1>
-                <p style={{ fontSize: '1.125rem', color: 'var(--text-muted)', marginBottom: '3rem' }}>
-                    Browse countries, learn key facts, and find your next adventure.
+                <h1 className="title text-gradient" style={{ fontSize: '4rem', marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>Explore the World</h1>
+                <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '2rem', maxWidth: '600px', lineHeight: '1.7' }}>
+                    Browse our extensive catalog of countries to find key facts, travel tips, and your next great adventure.
                 </p>
+            </div>
 
-                <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    gap: '1rem',
-                    width: '100%',
-                }}>
-                    {/* Search Input */}
-                    <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '400px' }}>
-                        <Search size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)' }} />
-                        <input
-                            type="text"
-                            placeholder="Search countries..."
-                            value={term}
-                            onChange={(e) => setTerm(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '1rem 1rem 1rem 3.5rem',
-                                borderRadius: '1rem',
-                                border: '1px solid var(--glass-border)',
-                                background: 'rgba(255, 255, 255, 0.03)',
-                                color: 'var(--text-main)',
-                                transition: 'all 0.2s ease',
-                                fontSize: '1rem'
-                            }}
-                        />
-                    </div>
+            {/* Sticky Search & Filter Bar */}
+            <div style={{
+                position: 'sticky',
+                top: '80px',
+                zIndex: 30,
+                background: isScrolled ? 'rgba(15, 41, 30, 0.98)' : 'rgba(15, 41, 30, 0.2)', // Dynamic transparency
+                backdropFilter: 'blur(12px)',
+                padding: '1rem 2rem',
+                borderRadius: '1rem',
+                border: '1px solid var(--glass-border)',
+                borderBottom: '1px solid var(--glass-border)',
+                marginBottom: '5rem',
+                marginLeft: '-1.5rem',
+                marginRight: '-1.5rem',
+                width: 'calc(100% + 3rem)',
+                boxShadow: isScrolled ? '0 10px 40px -10px rgba(0,0,0,0.8)' : 'none', // Dynamic shadow
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '1rem',
+                transition: 'all 0.3s ease'
+            }}>
+                {/* Search Input */}
+                <div style={{ position: 'relative', flex: '1 1 400px', maxWidth: '800px' }}>
+                    <Search size={20} color="var(--primary)" style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input
+                        type="text"
+                        placeholder="Search countries..."
+                        value={term}
+                        onChange={(e) => setTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '1rem 1rem 1rem 3.5rem',
+                            borderRadius: '0.75rem',
+                            border: '1px solid var(--glass-border)',
+                            background: 'var(--bg-card)', // Matches cards
+                            color: 'var(--text-main)',
+                            transition: 'all 0.2s ease',
+                            fontSize: '1rem'
+                        }}
+                    />
+                </div>
 
-                    {/* Region Filter */}
-                    <div style={{ position: 'relative', flex: '0 1 180px' }}>
-                        <Globe size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                        <select
-                            value={region}
-                            onChange={(e) => setRegion(e.target.value)}
-                            style={{
-                                appearance: 'none',
-                                width: '100%',
-                                padding: '1rem 2.5rem 1rem 3rem',
-                                borderRadius: '1rem',
-                                border: '1px solid var(--glass-border)',
-                                background: 'var(--bg-card)',
-                                color: 'var(--text-main)',
-                                cursor: 'pointer',
-                                height: '100%'
-                            }}
-                        >
-                            <option value="">All Regions</option>
-                            <option value="Africa">Africa</option>
-                            <option value="Americas">Americas</option>
-                            <option value="Asia">Asia</option>
-                            <option value="Europe">Europe</option>
-                            <option value="Oceania">Oceania</option>
-                        </select>
-                        <ChevronDown size={16} color="var(--text-muted)" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                    </div>
+                {/* Region Filter */}
+                <div style={{ position: 'relative', flex: '0 1 180px' }}>
+                    <Globe size={18} color="var(--primary)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <select
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value)}
+                        style={{
+                            appearance: 'none',
+                            width: '100%',
+                            padding: '1rem 2.5rem 1rem 3rem',
+                            borderRadius: '0.75rem',
+                            border: '1px solid var(--glass-border)',
+                            background: 'var(--bg-card)',
+                            color: 'var(--text-main)',
+                            cursor: 'pointer',
+                            height: '100%'
+                        }}
+                    >
+                        <option value="">All Regions</option>
+                        <option value="Africa">Africa</option>
+                        <option value="Americas">Americas</option>
+                        <option value="Asia">Asia</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Oceania">Oceania</option>
+                    </select>
+                    <ChevronDown size={16} color="var(--primary)" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                </div>
 
-                    {/* Sort Options */}
-                    <div style={{ position: 'relative', flex: '0 1 240px' }}>
-                        <ArrowUpDown size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                        <select
-                            value={sort}
-                            onChange={(e) => setSort(e.target.value)}
-                            style={{
-                                appearance: 'none',
-                                width: '100%',
-                                padding: '1rem 2.5rem 1rem 3rem',
-                                borderRadius: '1rem',
-                                border: '1px solid var(--glass-border)',
-                                background: 'var(--bg-card)',
-                                color: 'var(--text-main)',
-                                cursor: 'pointer',
-                                height: '100%'
-                            }}
-                        >
-                            <option value="alphabetical">A to Z</option>
-                            <option value="reverse">Z to A</option>
-                            <option value="pop-high">Highest Population</option>
-                            <option value="pop-low">Lowest Population</option>
-                            <option value="rating-high">Highest Rating</option>
-                        </select>
-                        <ChevronDown size={16} color="var(--text-muted)" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                    </div>
+                {/* Sort Options */}
+                <div style={{ position: 'relative', flex: '0 1 240px' }}>
+                    <ArrowUpDown size={18} color="var(--primary)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <select
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value)}
+                        style={{
+                            appearance: 'none',
+                            width: '100%',
+                            padding: '1rem 2.5rem 1rem 3rem',
+                            borderRadius: '0.75rem',
+                            border: '1px solid var(--glass-border)',
+                            background: 'var(--bg-card)',
+                            color: 'var(--text-main)',
+                            cursor: 'pointer',
+                            height: '100%'
+                        }}
+                    >
+                        <option value="alphabetical">A to Z</option>
+                        <option value="reverse">Z to A</option>
+                        <option value="pop-high">Highest Population</option>
+                        <option value="pop-low">Lowest Population</option>
+                        <option value="rating-high">Highest Rating</option>
+                    </select>
+                    <ChevronDown size={16} color="var(--primary)" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
             </div>
 
@@ -242,7 +301,16 @@ const Countries = () => {
                     ))}
                 </div>
             )}
-        </div>
+
+            {/* Back to Top Button */}
+            <button
+                onClick={scrollToTop}
+                className={`btn-scroll-top ${showScrollTop ? 'visible' : ''}`}
+                aria-label="Back to Top"
+            >
+                <ArrowUp size={24} />
+            </button>
+        </div >
     );
 };
 

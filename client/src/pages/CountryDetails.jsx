@@ -747,7 +747,7 @@ const CountryDetails = () => {
 
                             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                                    Post Experience
+                                    Post
                                 </button>
                             </div>
                         </form>
@@ -776,7 +776,7 @@ const CountryDetails = () => {
                             />
                         ))
                     ) : (
-                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No experiences yet. Be the first!</p>
+                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No posts yet. Be the first!</p>
                     )}
                 </div>
             </div>

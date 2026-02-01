@@ -175,15 +175,15 @@ const Profile = () => {
         if (!isOwner) return; // Guard
         setConfirmModal({
             isOpen: true,
-            title: 'Delete Review',
-            message: 'Are you sure you want to delete this review?',
+            title: 'Delete Post',
+            message: 'Are you sure you want to delete this post?',
             isDangerous: true,
             action: async () => {
                 try {
                     await api.delete(`/reviews/${reviewId}`);
                     setReviews(reviews.filter(r => r._id !== reviewId));
                     setUser(prev => ({ ...prev, reviewCount: prev.reviewCount ? prev.reviewCount - 1 : 0 }));
-                    showNotification('Review deleted', 'success');
+                    showNotification('Post deleted', 'success');
                 } catch (err) {
                     console.error(err);
                     showNotification('Failed to delete review', 'error');
@@ -374,7 +374,7 @@ const Profile = () => {
                             <div style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--secondary)' }}>{reviews.length}</div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                    <BookOpen size={14} /> Reviews
+                                    <BookOpen size={14} /> Posts
                                 </div>
                             </div>
                             <div style={{ textAlign: 'center' }}>
@@ -425,7 +425,7 @@ const Profile = () => {
                         fontWeight: '600'
                     }}
                 >
-                    {isOwner ? 'My Reviews' : 'Reviews'}
+                    {isOwner ? 'My Posts' : 'Posts'}
                 </button>
                 <button
                     onClick={() => setActiveTab('wanderlist')}
@@ -458,7 +458,7 @@ const Profile = () => {
                         ))
                     ) : (
                         <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                            <p>No reviews yet.</p>
+                            <p>No posts yet.</p>
                         </div>
                     )}
                 </div>

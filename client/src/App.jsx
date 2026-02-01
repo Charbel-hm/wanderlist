@@ -21,6 +21,7 @@ import LoadingScreen from './components/LoadingScreen';
 import { useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { useState, useEffect } from 'react';
+import ScrollToTop from './components/ScrollToTop';
 
 const AppContent = () => {
   const { loading: authLoading } = useAuth();
@@ -72,6 +73,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
+        <ScrollToTop />
         <AuthProvider>
           <NotificationProvider>
             <AppContent />
