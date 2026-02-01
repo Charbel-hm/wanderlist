@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Globe, Star, Bookmark, ChevronDown, Shuffle, MapPin, Trophy, Play } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import FeaturedSection from '../components/FeaturedSection';
+
 import ExperienceCard from '../components/ExperienceCard';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -13,9 +13,23 @@ const Home = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [countries, setCountries] = useState([]);
     const [filteredCountries, setFilteredCountries] = useState([]);
+    const [topReviews, setTopReviews] = useState([]);
     const [recentReviews, setRecentReviews] = useState([]);
+    const [topRatedStats, setTopRatedStats] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const { user, loading: userLoading } = useAuth();
+
+    // Derived state for top countries with flags
+    const topCountries = topRatedStats.map(stat => {
+        const countryData = countries.find(c => c.name.common === stat._id) || {};
+        return {
+            name: stat._id,
+            rating: stat.average,
+            count: stat.count,
+            flag: countryData.flags?.svg || '',
+            region: countryData.region || ''
+        };
+    }).filter(c => c.flag); // Only show if we found the country data
 
     const regions = [
         { name: 'Africa', value: 'Africa', img: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=600&q=80' },
@@ -28,13 +42,17 @@ const Home = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [countriesRes, reviewsRes] = await Promise.all([
+                const [countriesRes, reviewsRes, ratingsRes, recentRes] = await Promise.all([
                     api.get('/countries'),
+                    api.get('/reviews/top'),
+                    api.get('/ratings/top'),
                     api.get('/reviews/recent')
                 ]);
 
                 if (countriesRes) setCountries(countriesRes.data);
-                if (reviewsRes) setRecentReviews(reviewsRes.data);
+                if (reviewsRes) setTopReviews(reviewsRes.data);
+                if (ratingsRes) setTopRatedStats(ratingsRes.data);
+                if (recentRes) setRecentReviews(recentRes.data);
             } catch (err) {
                 console.error("Home: Failed to load content", err);
             }
@@ -54,7 +72,7 @@ const Home = () => {
                 }, 500); // Small delay to ensure render
             }
         }
-    }, [countries, recentReviews]); // Re-run when content loads
+    }, [countries, topReviews]); // Re-run when content loads
 
     useEffect(() => {
         if (searchTerm.trim() === '') {
@@ -341,18 +359,73 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Featured Section (Trending) */}
-            <FeaturedSection />
 
-            {/* Community/Recent Reviews */}
-            {recentReviews.length > 0 && (
+
+            {/* Top Rated Countries Section */}
+            {topCountries.length > 0 && (
+                <section style={{ padding: '4rem 0' }}>
+                    <div className="container">
+                        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                            <h2 className="title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+                                Top Rated Destinations
+                            </h2>
+                            <p style={{ color: 'var(--text-muted)' }}>Traveler favorites ranked by you.</p>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
+                            {topCountries.map((country, idx) => (
+                                <div key={country.name} onClick={() => handleCountryClick(country.name)} className="glass-card" style={{ padding: '0', overflow: 'hidden', cursor: 'pointer', position: 'relative', height: '250px', transition: 'transform 0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                                    <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 2, background: 'rgba(0,0,0,0.6)', color: '#fbbf24', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                        <span style={{ color: 'white', marginRight: '5px' }}>#{idx + 1}</span> <Star size={14} fill="#fbbf24" /> {country.rating.toFixed(1)}
+                                    </div>
+                                    <img src={country.flag} alt={country.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '1.5rem', background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}>
+                                        <h3 style={{ fontSize: '1.5rem', color: 'white', marginBottom: '0.25rem' }}>{country.name}</h3>
+                                        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>{country.region}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* Top Liked Reviews */}
+            {topReviews.length > 0 && (
                 <section style={{ padding: '6rem 0' }}>
                     <div className="container">
                         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
                             <h2 className="title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-                                Community Voices
+                                Top Liked Posts
                             </h2>
-                            <p style={{ color: 'var(--text-muted)' }}>Latest travel experiences shared by explorers.</p>
+                            <p style={{ color: 'var(--text-muted)' }}>Most loved stories from our community.</p>
+                        </div>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                            gap: '2rem'
+                        }}>
+                            {topReviews.map(review => (
+                                <div key={review._id} onClick={() => navigate(`/countries/${review.countryName}`)} style={{ cursor: 'pointer' }}>
+                                    <ExperienceCard review={review} />
+                                    <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--primary)', textAlign: 'right' }}>
+                                        — in {review.countryName}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* Recent Reviews (Restored) */}
+            {recentReviews.length > 0 && (
+                <section style={{ padding: '4rem 0', background: 'rgba(0,0,0,0.1)' }}>
+                    <div className="container">
+                        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                            <h2 className="title" style={{ fontSize: '2rem', marginBottom: '1rem' }}>
+                                Just In
+                            </h2>
+                            <p style={{ color: 'var(--text-muted)' }}>The very latest updates from travelers.</p>
                         </div>
                         <div style={{
                             display: 'grid',

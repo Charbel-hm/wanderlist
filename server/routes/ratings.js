@@ -3,6 +3,27 @@ const router = express.Router();
 const Rating = require('../models/Rating');
 const auth = require('../middleware/auth');
 
+// Get Top Rated Countries
+router.get('/top', async (req, res) => {
+    try {
+        const stats = await Rating.aggregate([
+            {
+                $group: {
+                    _id: '$countryName',
+                    average: { $avg: '$rating' },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { average: -1, count: -1 } },
+            { $limit: 6 }
+        ]);
+        res.json(stats);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // Get Statistics for a Country
 router.get('/:countryName', async (req, res) => {
     try {

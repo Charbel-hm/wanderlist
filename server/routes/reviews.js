@@ -51,6 +51,20 @@ const streamUpload = async (buffer, originalName, mimetype) => {
     });
 };
 
+// Get Top Liked Reviews
+router.get('/top', async (req, res) => {
+    try {
+        const reviews = await Review.find()
+            .sort({ likes: -1, createdAt: -1 })
+            .limit(6)
+            .populate('userId', 'fullName username profilePicture');
+        res.json(reviews);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // Get Recent Reviews (Global)
 router.get('/recent', async (req, res) => {
     try {
