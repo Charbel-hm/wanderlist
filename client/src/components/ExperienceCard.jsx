@@ -35,10 +35,22 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 'bold',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        flexShrink: 0
                     }}>
-                        {/* Could add user avatar here if available in review object, else generic */}
-                        {review.username.charAt(0).toUpperCase()}
+                        {(review.userId?.profilePicture) ? (
+                            <img
+                                src={getMediaUrl(review.userId.profilePicture)}
+                                alt={review.username}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.parentElement.textContent = review.username.charAt(0).toUpperCase();
+                                }}
+                            />
+                        ) : (
+                            review.username.charAt(0).toUpperCase()
+                        )}
                     </div>
                     <div>
                         <p style={{ fontWeight: '600', marginBottom: '0', lineHeight: '1.2' }}>

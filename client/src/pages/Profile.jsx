@@ -6,6 +6,8 @@ import { User, MapPin, Star, Edit2, Camera, Save, X, BookOpen, Globe, LogOut, Li
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getMediaUrl } from '../utils/api';
+import Cropper from 'react-easy-crop';
+import { getCroppedImg } from '../utils/cropImage';
 
 const Profile = () => {
     const { username } = useParams(); // Get username from URL if present
@@ -14,15 +16,23 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('reviews'); // 'reviews' or 'visited'
-    const { logout, user: authUser } = useAuth(); // Get authUser to compare
+    const { logout, user: authUser, updateUser } = useAuth(); // Get authUser to compare
 
     // Edit Form State
     const [editForm, setEditForm] = useState({
         fullName: '',
         bio: '',
-        profilePicture: null
+        profilePicture: null,
+        removeProfilePicture: false
     });
     const [previewImage, setPreviewImage] = useState(null);
+
+    // Crop State
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [tempImgSrc, setTempImgSrc] = useState(null);
 
     const navigate = useNavigate();
 
@@ -53,6 +63,12 @@ const Profile = () => {
                 const res = await api.get(`/users/${username}`);
                 setUser(res.data.user);
                 setReviews(res.data.reviews);
+                // Set preview image for public profile
+                if (res.data.user.profilePicture) {
+                    setPreviewImage(getMediaUrl(res.data.user.profilePicture));
+                } else {
+                    setPreviewImage(null);
+                }
             }
         } catch (err) {
             console.error("Failed to load profile:", err);
@@ -62,13 +78,53 @@ const Profile = () => {
         }
     };
 
+    // NEW CROPPER HANDLERS
+    const onCropComplete = (croppedArea, croppedAreaPixels) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    };
+
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                setTempImgSrc(reader.result);
+                setShowCropModal(true);
+            });
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSaveCrop = async () => {
+        try {
+            const croppedImageBlob = await getCroppedImg(tempImgSrc, croppedAreaPixels);
+            setEditForm({ ...editForm, profilePicture: croppedImageBlob, removeProfilePicture: false });
+            setPreviewImage(URL.createObjectURL(croppedImageBlob));
+            setShowCropModal(false);
+            setTempImgSrc(null); // Clear temp image
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleRemoveProfilePicture = async () => {
+        if (!window.confirm("Remove profile picture?")) return;
+        try {
+            setEditForm({ ...editForm, profilePicture: null, removeProfilePicture: true });
+            setPreviewImage(null); // Clear preview to show generic avatar
+        } catch (e) { console.error(e); }
+    };
+
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('fullName', editForm.fullName);
         formData.append('bio', editForm.bio);
         if (editForm.profilePicture) {
-            formData.append('profilePicture', editForm.profilePicture);
+            formData.append('profilePicture', editForm.profilePicture, 'profile.jpg');
+        }
+        if (editForm.removeProfilePicture) {
+            formData.append('removeProfilePicture', 'true');
         }
 
         try {
@@ -76,6 +132,9 @@ const Profile = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setUser(res.data);
+            if (isOwner) {
+                updateUser(res.data); // Update global context
+            }
             setIsEditing(false);
             setPreviewImage(null);
         } catch (err) {
@@ -106,6 +165,8 @@ const Profile = () => {
         }
     };
 
+
+
     if (loading) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>Loading profile...</div>;
     if (!user) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>User not found.</div>;
 
@@ -129,7 +190,13 @@ const Profile = () => {
                         border: '4px solid var(--primary)', margin: '0 auto',
                         background: 'var(--bg-card)'
                     }}>
-                        {user.profilePicture ? (
+                        {previewImage ? (
+                            <img
+                                src={previewImage}
+                                alt="Preview"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        ) : user.profilePicture ? (
                             <img
                                 src={getMediaUrl(user.profilePicture)} // Use helper
                                 alt="Profile"
@@ -160,14 +227,74 @@ const Profile = () => {
                                 onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) {
-                                        setEditForm({ ...editForm, profilePicture: file });
-                                        setPreviewImage(URL.createObjectURL(file));
+                                        // Pass to handleFileChange logic
+                                        const reader = new FileReader();
+                                        reader.addEventListener('load', () => {
+                                            setTempImgSrc(reader.result);
+                                            setShowCropModal(true);
+                                        });
+                                        reader.readAsDataURL(file);
                                     }
                                 }}
                             />
                         </label>
                     )}
                 </div>
+
+                {isEditing && (
+                    <div style={{ marginBottom: '1rem' }}>
+                        <button
+                            type="button"
+                            onClick={handleRemoveProfilePicture}
+                            style={{
+                                background: 'transparent',
+                                border: '1px solid #ef4444',
+                                color: '#ef4444',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.8rem',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Remove Picture
+                        </button>
+                    </div>
+                )}
+
+                {/* Crop Modal */}
+                {showCropModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        zIndex: 2000, background: 'rgba(0,0,0,0.85)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <div style={{ position: 'relative', width: '90%', height: '60%', background: '#333', borderRadius: '1rem', overflow: 'hidden' }}>
+                            <Cropper
+                                image={tempImgSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+                        <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+                            <input
+                                type="range"
+                                value={zoom}
+                                min={1}
+                                max={3}
+                                step={0.1}
+                                aria-labelledby="Zoom"
+                                onChange={(e) => setZoom(e.target.value)}
+                                className="zoom-range"
+                            />
+                            <button onClick={() => setShowCropModal(false)} className="btn btn-secondary">Cancel</button>
+                            <button onClick={handleSaveCrop} className="btn btn-primary">Crop & Save</button>
+                        </div>
+                    </div>
+                )}
 
                 {isEditing ? (
                     <form onSubmit={handleUpdateProfile} style={{ maxWidth: '400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

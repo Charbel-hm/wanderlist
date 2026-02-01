@@ -148,7 +148,9 @@ router.put('/updatedetails', [auth, upload.single('profilePicture')], async (req
 
         if (fullName) user.fullName = fullName;
         if (bio) user.bio = bio;
-        if (req.file) {
+        if (req.body.removeProfilePicture === 'true') {
+            user.profilePicture = undefined;
+        } else if (req.file) {
             // Manual GridFS Stream
             const filename = await streamUpload(req.file.buffer, req.file.originalname, req.file.mimetype);
             user.profilePicture = filename;
