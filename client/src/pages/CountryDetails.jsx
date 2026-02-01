@@ -7,9 +7,12 @@ import { MapPin, Users, DollarSign, Languages, Star, Plus, Check, ChevronDown, C
 import { formatPopulation } from '../utils/formatters';
 import LoadingScreen from '../components/LoadingScreen';
 import '../styles/CountryDetails.css';
+import { useNotification } from '../context/NotificationContext';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const CountryDetails = () => {
     const { name } = useParams();
+    const { showNotification } = useNotification();
     const [country, setCountry] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -233,7 +236,7 @@ const CountryDetails = () => {
 
 
     const handleAddToWanderlist = async () => {
-        if (!token) return alert('Please login to add to Wanderlist');
+        if (!token) return showNotification('Please login to add to Wanderlist', 'warning');
         try {
             await api.post('/wanderlist', {
                 name: country.name.common,
@@ -241,16 +244,17 @@ const CountryDetails = () => {
                 region: country.region
             });
             setIsInWanderlist(true);
+            showNotification('Added to your Wanderlist!', 'success');
         } catch (err) {
             console.error(err);
-            alert('Error adding to wanderlist');
+            showNotification('Error adding to wanderlist', 'error');
         }
     };
 
 
 
     const handleLikeReview = async (reviewId) => {
-        if (!token) return alert('Please login to like reviews');
+        if (!token) return showNotification('Please login to like reviews', 'warning');
         try {
             const res = await api.put(`/reviews/${reviewId}/like`);
             setReviews(prev => prev.map(r => r._id === reviewId ? res.data : r));
@@ -260,7 +264,7 @@ const CountryDetails = () => {
     };
 
     const handleRate = async (newRating) => {
-        if (!token) return alert('Please login to rate');
+        if (!token) return showNotification('Please login to rate', 'warning');
         try {
             await api.post('/ratings', {
                 countryName: country.name.common,
@@ -270,15 +274,16 @@ const CountryDetails = () => {
             // Refresh stats
             const statsRes = await api.get(`/ratings/${country.name.common}`);
             setRatingsStats(statsRes.data);
+            showNotification('Rating updated!', 'success');
         } catch (err) {
             console.error(err);
-            alert('Error updating rating');
+            showNotification('Error updating rating', 'error');
         }
     };
 
     const handlePostReview = async (e) => {
         e.preventDefault();
-        if (!token) return alert('Please login to share experience');
+        if (!token) return showNotification('Please login to share experience', 'warning');
 
         try {
             // Always create new
@@ -301,10 +306,11 @@ const CountryDetails = () => {
             setComment('');
             setSelectedFiles([]);
             setVisited(true);
+            showNotification('Experience shared successfully!', 'success');
         } catch (err) {
             console.error(err);
             const msg = err.response?.data?.msg || 'Error posting review';
-            alert(msg);
+            showNotification(msg, 'error');
         }
     };
 
@@ -320,9 +326,10 @@ const CountryDetails = () => {
             setReviews(reviews.filter(r => r._id !== reviewToDelete));
             setReviewToDelete(null);
             setShowDeleteModal(false);
+            showNotification('Review deleted', 'success');
         } catch (err) {
             console.error(err);
-            alert('Error deleting review');
+            showNotification('Error deleting review', 'error');
         }
     };
 
@@ -493,7 +500,7 @@ const CountryDetails = () => {
 
                         <button
                             onClick={async () => {
-                                if (!token) return alert('Please login first');
+                                if (!token) return showNotification('Please login first', 'warning');
                                 try {
                                     if (visited) {
                                         await api.delete(`/users/visited/${country.name.common}`);
@@ -905,43 +912,15 @@ const CountryDetails = () => {
             }
 
             {/* Delete Confirmation Modal */}
-            {
-                showDeleteModal && (
-                    <div style={{
-                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                        background: 'rgba(0,0,0,0.8)', zIndex: 10000,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
-                        <div className="glass-card" style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
-                            <h3 style={{ marginBottom: '1rem', color: 'white' }}>Delete Review?</h3>
-                            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
-                                Are you sure you want to delete your review? This action cannot be undone.
-                            </p>
-                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button
-                                    onClick={() => setShowDeleteModal(false)}
-                                    className="btn btn-secondary"
-                                    style={{ padding: '0.75rem 1.5rem' }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={confirmDelete}
-                                    className="btn"
-                                    style={{
-                                        padding: '0.75rem 1.5rem',
-                                        background: '#ef4444',
-                                        color: 'white',
-                                        border: 'none'
-                                    }}
-                                >
-                                    Yes, Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                title="Delete Experience?"
+                message="Are you sure you want to delete this experience? This action cannot be undone."
+                confirmText="Yes, Delete"
+                isDangerous={true}
+            />
 
             {/* Review Lightbox Modal */}
             {

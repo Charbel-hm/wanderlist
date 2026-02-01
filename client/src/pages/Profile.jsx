@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import ExperienceCard from '../components/ExperienceCard';
@@ -8,9 +7,12 @@ import { useAuth } from '../context/AuthContext';
 import { getMediaUrl } from '../utils/api';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
+import { useNotification } from '../context/NotificationContext';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Profile = () => {
     const { username } = useParams(); // Get username from URL if present
+    const { showNotification } = useNotification();
     const [user, setUser] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -33,6 +35,15 @@ const Profile = () => {
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [showCropModal, setShowCropModal] = useState(false);
     const [tempImgSrc, setTempImgSrc] = useState(null);
+
+    // Confirmation Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: null,
+        isDangerous: false
+    });
 
     const navigate = useNavigate();
 
@@ -107,12 +118,17 @@ const Profile = () => {
         }
     };
 
-    const handleRemoveProfilePicture = async () => {
-        if (!window.confirm("Remove profile picture?")) return;
-        try {
-            setEditForm({ ...editForm, profilePicture: null, removeProfilePicture: true });
-            setPreviewImage(null); // Clear preview to show generic avatar
-        } catch (e) { console.error(e); }
+    const handleRemoveProfilePicture = () => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Remove Profile Picture',
+            message: 'Are you sure you want to remove your profile picture?',
+            isDangerous: true,
+            action: () => {
+                setEditForm({ ...editForm, profilePicture: null, removeProfilePicture: true });
+                setPreviewImage(null); // Clear preview to show generic avatar
+            }
+        });
     };
 
     const handleUpdateProfile = async (e) => {
@@ -137,23 +153,32 @@ const Profile = () => {
             }
             setIsEditing(false);
             setPreviewImage(null);
+            showNotification('Profile updated successfully!', 'success');
         } catch (err) {
             console.error("Update failed:", err);
-            alert("Failed to update profile");
+            showNotification('Failed to update profile', 'error');
         }
     };
 
     const handleDeleteReview = async (reviewId) => {
         if (!isOwner) return; // Guard
-        if (window.confirm('Are you sure you want to delete this review?')) {
-            try {
-                await api.delete(`/reviews/${reviewId}`);
-                setReviews(reviews.filter(r => r._id !== reviewId));
-                setUser(prev => ({ ...prev, reviewCount: prev.reviewCount ? prev.reviewCount - 1 : 0 }));
-            } catch (err) {
-                console.error(err);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Review',
+            message: 'Are you sure you want to delete this review?',
+            isDangerous: true,
+            action: async () => {
+                try {
+                    await api.delete(`/reviews/${reviewId}`);
+                    setReviews(reviews.filter(r => r._id !== reviewId));
+                    setUser(prev => ({ ...prev, reviewCount: prev.reviewCount ? prev.reviewCount - 1 : 0 }));
+                    showNotification('Review deleted', 'success');
+                } catch (err) {
+                    console.error(err);
+                    showNotification('Failed to delete review', 'error');
+                }
             }
-        }
+        });
     };
 
     const handleLikeReview = async (reviewId) => {
@@ -164,8 +189,6 @@ const Profile = () => {
             console.error(err);
         }
     };
-
-
 
     if (loading) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>Loading profile...</div>;
     if (!user) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>User not found.</div>;
@@ -444,6 +467,16 @@ const Profile = () => {
                     )}
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModal.action}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                isDangerous={confirmModal.isDangerous}
+                confirmText={confirmModal.isDangerous ? 'Yes, Remove' : 'Confirm'}
+            />
         </div>
     );
 };

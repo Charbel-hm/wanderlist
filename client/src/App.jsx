@@ -19,6 +19,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 import LoadingScreen from './components/LoadingScreen';
 import { useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { useState, useEffect } from 'react';
 
 const AppContent = () => {
@@ -72,7 +73,9 @@ function App() {
     <ErrorBoundary>
       <Router>
         <AuthProvider>
-          <AppContent />
+          <NotificationProvider>
+            <AppContent />
+          </NotificationProvider>
         </AuthProvider>
       </Router>
     </ErrorBoundary>
