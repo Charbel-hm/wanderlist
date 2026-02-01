@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Review = require('../models/Review');
+const Wanderlist = require('../models/Wanderlist');
 const auth = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
@@ -76,8 +77,10 @@ router.get('/:username', async (req, res) => {
         if (!user) return res.status(404).json({ msg: 'User not found' });
 
         const reviews = await Review.find({ userId: user._id }).sort({ createdAt: -1 });
+        const wanderlistDoc = await Wanderlist.findOne({ userId: user._id });
+        const wanderlist = wanderlistDoc ? wanderlistDoc.countries : [];
 
-        res.json({ user, reviews });
+        res.json({ user, reviews, wanderlist });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');

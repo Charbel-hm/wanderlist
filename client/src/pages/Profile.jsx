@@ -15,9 +15,10 @@ const Profile = () => {
     const { showNotification } = useNotification();
     const [user, setUser] = useState(null);
     const [reviews, setReviews] = useState([]);
+    const [wanderlist, setWanderlist] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState('reviews'); // 'reviews' or 'visited'
+    const [activeTab, setActiveTab] = useState('reviews'); // 'reviews', 'visited', 'wanderlist'
     const { logout, user: authUser, updateUser } = useAuth(); // Get authUser to compare
 
     // Edit Form State
@@ -69,11 +70,21 @@ const Profile = () => {
 
                 const reviewsRes = await api.get('/reviews/user');
                 setReviews(reviewsRes.data);
+
+                try {
+                    const wanderlistRes = await api.get('/wanderlist');
+                    setWanderlist(wanderlistRes.data);
+                } catch (e) {
+                    console.warn("Failed to fetch wanderlist", e);
+                }
+
             } else {
                 // Fetch Public Profile
                 const res = await api.get(`/users/${username}`);
                 setUser(res.data.user);
                 setReviews(res.data.reviews);
+                setWanderlist(res.data.wanderlist || []);
+
                 // Set preview image for public profile
                 if (res.data.user.profilePicture) {
                     setPreviewImage(getMediaUrl(res.data.user.profilePicture));
@@ -417,18 +428,18 @@ const Profile = () => {
                     {isOwner ? 'My Reviews' : 'Reviews'}
                 </button>
                 <button
-                    onClick={() => setActiveTab('visited')}
+                    onClick={() => setActiveTab('wanderlist')}
                     style={{
                         padding: '1rem',
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: activeTab === 'visited' ? '2px solid var(--primary)' : '2px solid transparent',
-                        color: activeTab === 'visited' ? 'var(--primary)' : 'var(--text-muted)',
+                        borderBottom: activeTab === 'wanderlist' ? '2px solid var(--primary)' : '2px solid transparent',
+                        color: activeTab === 'wanderlist' ? 'var(--primary)' : 'var(--text-muted)',
                         cursor: 'pointer',
                         fontWeight: '600'
                     }}
                 >
-                    Visited Countries
+                    Wanderlist
                 </button>
             </div>
 
@@ -453,16 +464,30 @@ const Profile = () => {
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
-                    {user.visitedCountries && user.visitedCountries.length > 0 ? (
-                        user.visitedCountries.map((countryName, idx) => (
-                            <div key={idx} className="glass-card" style={{ padding: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100px' }}>
-                                <Globe size={24} style={{ marginBottom: '0.5rem', color: 'var(--primary)' }} />
-                                <span style={{ fontWeight: '500' }}>{countryName}</span>
-                            </div>
-                        ))
+                    {wanderlist && wanderlist.length > 0 ? (
+                        wanderlist.map((item, idx) => {
+                            const isVisited = user.visitedCountries?.includes(item.name);
+                            return (
+                                <div key={idx} className="glass-card" onClick={() => navigate(`/countries/${item.name}`)} style={{ padding: '0', textAlign: 'center', overflow: 'hidden', height: '150px', position: 'relative', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+                                    <img src={item.flag} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isVisited ? 0.8 : 0.7, filter: isVisited ? 'grayscale(0%)' : 'grayscale(30%)' }} />
+
+                                    {/* Name Overlay */}
+                                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
+                                        <span style={{ fontWeight: 'bold', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.8)', fontSize: '1.2rem' }}>{item.name}</span>
+                                    </div>
+
+                                    {/* Visited Badge */}
+                                    {isVisited && (
+                                        <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: '#10b981', color: 'white', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.7rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.25rem', boxShadow: '0 2px 5px rgba(0,0,0,0.5)' }}>
+                                            <MapPin size={10} /> Visited
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
                     ) : (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                            <p>No visited countries yet.</p>
+                            <p>Wanderlist is empty.</p>
                         </div>
                     )}
                 </div>
