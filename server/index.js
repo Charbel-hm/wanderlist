@@ -76,6 +76,7 @@ app.use('/api/countries', require('./routes/countries'));
 app.use('/api/wiki', require('./routes/wiki'));
 app.use('/api/wanderlist', require('./routes/wanderlist'));
 app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/ratings', require('./routes/ratings'));
 app.use('/api/youtube', require('./routes/youtube'));
 app.use('/api/game', require('./routes/game'));
 app.use('/api/users', require('./routes/users'));

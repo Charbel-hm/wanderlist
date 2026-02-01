@@ -93,7 +93,7 @@ router.get('/:countryName', async (req, res) => {
 
 // Add Review
 router.post('/', auth, upload.array('media', 5), async (req, res) => {
-    const { countryName, rating, comment } = req.body;
+    const { countryName, comment } = req.body;
     try {
         // Handle manual Streaming to GridFS
         const mediaPromises = req.files ? req.files.map(file => streamUpload(file.buffer, file.originalname, file.mimetype)) : [];
@@ -103,7 +103,6 @@ router.post('/', auth, upload.array('media', 5), async (req, res) => {
             countryName,
             userId: req.user.id,
             username: req.user.username,
-            rating,
             comment,
             media
         });
@@ -127,7 +126,7 @@ router.post('/', auth, upload.array('media', 5), async (req, res) => {
 
 // Update Review
 router.put('/:id', auth, upload.array('media', 5), async (req, res) => {
-    const { rating, comment } = req.body;
+    const { comment } = req.body;
     try {
         let review = await Review.findById(req.params.id);
         if (!review) return res.status(404).json({ msg: 'Review not found' });
@@ -137,7 +136,6 @@ router.put('/:id', auth, upload.array('media', 5), async (req, res) => {
             return res.status(401).json({ msg: 'User not authorized' });
         }
 
-        review.rating = rating || review.rating;
         review.comment = comment || review.comment;
 
         if (req.files && req.files.length > 0) {

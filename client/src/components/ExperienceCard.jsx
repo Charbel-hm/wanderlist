@@ -49,16 +49,7 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                                 @{review.username}
                             </p>
                         )}
-                        <div style={{ display: 'flex', gap: '2px' }}>
-                            {[...Array(5)].map((_, i) => (
-                                <Star
-                                    key={i}
-                                    size={12}
-                                    fill={i < review.rating ? 'gold' : 'none'}
-                                    color={i < review.rating ? 'gold' : '#64748b'}
-                                />
-                            ))}
-                        </div>
+
                     </div>
                 </Link>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -66,9 +57,11 @@ const ExperienceCard = ({ review, currentUser, onDelete, onImageClick, onLike })
                 </span>
             </div>
 
-            <p style={{ color: 'var(--text-main)', marginBottom: '1rem', lineHeight: '1.6' }}>
-                "{review.comment}"
-            </p>
+            {review.comment && (
+                <p style={{ color: 'var(--text-main)', marginBottom: '1rem', lineHeight: '1.6' }}>
+                    "{review.comment}"
+                </p>
+            )}
 
             {review.media && review.media.length > 0 && (
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>

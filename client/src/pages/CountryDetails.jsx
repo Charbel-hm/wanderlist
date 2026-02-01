@@ -36,6 +36,8 @@ const CountryDetails = () => {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [visited, setVisited] = useState(false);
+    const [ratingsStats, setRatingsStats] = useState({ average: 0, count: 0 });
+    const [userRating, setUserRating] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -62,14 +64,12 @@ const CountryDetails = () => {
                     console.warn("Gallery fetch failed:", err);
                 }
 
-                // Fetch landmark image from Wikipedia (Tourism page)
+                // Fetch landmark image
                 try {
-
                     let wikiRes = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/Tourism_in_${countryData.name.common}`);
                     if (!wikiRes.data.originalimage) {
                         wikiRes = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/Geography_of_${countryData.name.common}`);
                     }
-
                     if (wikiRes.data.originalimage) {
                         setHeaderImage(wikiRes.data.originalimage.source);
                     }
@@ -80,21 +80,31 @@ const CountryDetails = () => {
                 const reviewsRes = await api.get(`/reviews/${name}`);
                 setReviews(reviewsRes.data);
 
+                // Fetch Ratings Stats
+                try {
+                    const statsRes = await api.get(`/ratings/${countryData.name.common}`);
+                    setRatingsStats(statsRes.data);
+                } catch (err) {
+                    console.warn("Ratings fetch failed", err);
+                }
+
                 if (token) {
                     const wanderlistRes = await api.get('/wanderlist');
                     const exists = wanderlistRes.data.some(c => c.name === countryData.name.common);
                     setIsInWanderlist(exists);
 
-                    // Fetch Current User
+                    // Fetch Current User & User Rating
                     try {
                         const userRes = await api.get('/auth/me');
                         setCurrentUser(userRes.data);
-                        // Check if visited
                         if (userRes.data.visitedCountries && userRes.data.visitedCountries.includes(countryData.name.common)) {
                             setVisited(true);
                         }
+
+                        const ratingRes = await api.get(`/ratings/${countryData.name.common}/user`);
+                        setUserRating(ratingRes.data.rating);
                     } catch (err) {
-                        console.error('Error fetching user', err);
+                        console.error('Error fetching user data', err);
                     }
                 }
             } catch (err) {
@@ -249,17 +259,32 @@ const CountryDetails = () => {
         }
     };
 
+    const handleRate = async (newRating) => {
+        if (!token) return alert('Please login to rate');
+        try {
+            await api.post('/ratings', {
+                countryName: country.name.common,
+                rating: newRating
+            });
+            setUserRating(newRating);
+            // Refresh stats
+            const statsRes = await api.get(`/ratings/${country.name.common}`);
+            setRatingsStats(statsRes.data);
+        } catch (err) {
+            console.error(err);
+            alert('Error updating rating');
+        }
+    };
+
     const handlePostReview = async (e) => {
         e.preventDefault();
-        if (!token) return alert('Please login to review');
-        if (rating === 0) return alert('Please select a star rating');
+        if (!token) return alert('Please login to share experience');
 
         try {
             // Always create new
             const formData = new FormData();
             formData.append('countryName', country.name.common);
-            formData.append('rating', rating);
-            formData.append('comment', comment.trim() || "No comment provided");
+            formData.append('comment', comment.trim());
 
             selectedFiles.forEach(file => {
                 formData.append('media', file);
@@ -273,7 +298,6 @@ const CountryDetails = () => {
             });
 
             setReviews([res.data, ...reviews]);
-            setRating(0);
             setComment('');
             setSelectedFiles([]);
             setVisited(true);
@@ -354,7 +378,7 @@ const CountryDetails = () => {
             </div>
 
 
-            <div className="container details-grid">
+            <div className="container details-grid" style={{ marginBottom: '3rem' }}>
 
                 {/* Main Content: About & Deep Dive */}
                 <div>
@@ -426,37 +450,32 @@ const CountryDetails = () => {
                 {/* Sidebar */}
                 <div>
                     <div className="glass-card sidebar-sticky">
-                        <div
-                            style={{ textAlign: 'center', marginBottom: '2rem' }}
-                            onClick={scrollToReviews}
-                        >
-                            <span style={{
-                                fontSize: reviews.length > 0 ? '3rem' : '2rem',
-                                fontWeight: 'bold',
-                                display: 'block'
-                            }}>
-                                {reviews.length > 0
-                                    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-                                    : 'BE FIRST'}
-                            </span>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem', margin: '0.5rem 0' }}>
-                                {[1, 2, 3, 4, 5].map(i => {
-                                    const avg = reviews.length > 0
-                                        ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
-                                        : 0;
-                                    return (
-                                        <Star
-                                            key={i}
-                                            size={16}
-                                            fill={i <= Math.round(avg) ? "gold" : "none"}
-                                            color={i <= Math.round(avg) ? "gold" : "rgba(255,255,255,0.2)"}
-                                        />
-                                    );
-                                })}
+                        <div style={{ textAlign: 'center', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Average Rating</p>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '3rem', fontWeight: 'bold' }}>{ratingsStats.average}</span>
+                                <Star size={28} fill="gold" color="gold" />
                             </div>
-                            <p style={{ color: 'var(--text-muted)' }}>
-                                {reviews.length > 0 ? `Based on ${reviews.length} reviews` : 'Click to rate'}
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                                ({ratingsStats.count > 0 ? `${ratingsStats.count} travelers` : 'No ratings yet'})
                             </p>
+                        </div>
+
+                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Rate your experience</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <Star
+                                        key={i}
+                                        size={32}
+                                        fill={i <= userRating ? "gold" : "none"}
+                                        color={i <= userRating ? "gold" : "rgba(255,255,255,0.2)"}
+                                        onClick={() => handleRate(i)}
+                                        style={{ transition: 'transform 0.2s', transform: i <= userRating ? 'scale(1.1)' : 'scale(1)' }}
+                                    />
+                                ))}
+                            </div>
+                            {userRating > 0 && <p style={{ color: 'gold', fontSize: '0.8rem', marginTop: '0.5rem' }}>You rated this {userRating} stars</p>}
                         </div>
 
                         <button
@@ -636,21 +655,7 @@ const CountryDetails = () => {
                             Share Your Experience
                         </h3>
                         <form onSubmit={handlePostReview}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem' }}>Rating</label>
-                                <div style={{ display: 'flex', gap: '0.5rem', cursor: 'pointer' }}>
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
-                                            key={star}
-                                            size={28}
-                                            fill={star <= rating ? 'gold' : 'none'}
-                                            color={star <= rating ? 'gold' : 'rgba(255,255,255,0.2)'}
-                                            onClick={() => setRating(star)}
-                                            style={{ transition: 'all 0.2s' }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+
                             <textarea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
